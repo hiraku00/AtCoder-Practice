@@ -1,0 +1,5 @@
+{
+  "name": "AtCoder",
+  "dockerFile": "Dockerfile",
+  "extensions": ["ms-python.python"]
+}
