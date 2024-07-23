@@ -1,17 +1,14 @@
-def isPrime(n):
-    if n < 2: return False
-    if n == 2 or n ==3: return True
-    if n % 2 == 0 or n % 3 == 0: return False
-    i = 5
-    while i * i <= n:
-        if n % i == 0 or n % (i+2) == 0:
-            return False
-        i += 6
-    return True
+def primes_up_to(n):
+  primes = [True] * (n + 1)
+  primes[0] = primes[1] = False
+  p = 2
+  while p * p <= n:
+    if primes[p]:
+      for i in range(p * p, n + 1, p):
+        primes[i] = False
+    p += 1
+  return [i for i in range(n + 1) if primes[i]]
 
 N = int(input())
-ans = []
-for i in range(2, N):
-    if isPrime(i):
-        ans.append(i)
+ans = primes_up_to(N)
 print(*ans)
