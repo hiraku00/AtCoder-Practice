@@ -140,3 +140,23 @@ dp = [1, 1, 1, 1, 1, 1, 1, 1]
 `primes_up_to(n)` 関数は、エラトステネスの篩という効率的なアルゴリズムを用いることで、`n` 以下の全ての素数を高速に計算することができます。
 
 
+---
+### 012
+
+```
+def isPrime(n):
+    if n < 2: return False
+    if n == 2 or n == 3: return True
+    if n % 2 == 0 or n % 3 == 0: return False
+    i = 5
+    while i * i <= n:
+        # n % (i + 2)`は、与えられた数nが次の素数候補(現在の数iから2足した数)で割り切れるかどうかをチェック
+        # => i = 5,  i+2 = 7
+        # => i = 11, i+2 = 13
+        if n % i == 0 or n % (i+2) == 0:
+            return False
+        i += 6
+    return True
+
+N = int(input())
+print("Yes" if isPrime(N) else "No")
