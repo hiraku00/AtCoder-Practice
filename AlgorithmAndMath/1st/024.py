@@ -3,7 +3,7 @@ def main():
     res = 0
     for _ in range(N):
         P, Q = map(int, input().split())
-    res += Q/P
+        res += Q/P
     print(res)
 
 if __name__ == "__main__":
