@@ -2175,7 +2175,7 @@ $$
 \overrightarrow{AH} \cdot \overrightarrow{BC} = 0
 $$
 
-$\overrightarrow{AH} = \overrightarrow{OH} - \overrightarrow{OA}$、$\overrightarrow{OH} = \overrightarrow{OB} + t\overrightarrow{BC}$ を代入して展開すると、
+$\overrightarrow{AH} = \overrightarrow{OH} - \overrightarrow{OA}$ 、 $\overrightarrow{OH} = \overrightarrow{OB} + t\overrightarrow{BC}$ を代入して展開すると、
 
 $$
 (\overrightarrow{OB} + t\overrightarrow{BC} - \overrightarrow{OA}) \cdot \overrightarrow{BC} = 0
