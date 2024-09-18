@@ -2141,22 +2141,16 @@ def dp(N, A):
 **ケース1：点Hが線分BCの外側で、点B寄りにある場合**
 
 * この時、点Bと点Aを結ぶ線分が最短距離になります。
-* $\overrightarrow{BA}$と$\overrightarrow{BC}$の内積が負になる、すなわち $\overrightarrow{BA} \cdot \overrightarrow{BC} < 0$ という条件で判別できます。
+* $\overrightarrow{BA}$ と $\overrightarrow{BC}$ の内積が負になる、すなわち $\overrightarrow{BA} \cdot \overrightarrow{BC} < 0$ という条件で判別できます。
 * この場合、最短距離は点Aと点Bの距離なので、以下のユークリッド距離の公式を用いて計算できます。
-
-    $$
-    \text{距離} = \sqrt{(a_x - b_x)^2 + (a_y - b_y)^2}
-    $$
+    * $\text{距離} = \sqrt{(a_x - b_x)^2 + (a_y - b_y)^2}$
 
 **ケース2：点Hが線分BCの外側で、点C寄りにある場合**
 
 * この時、点Cと点Aを結ぶ線分が最短距離になります。
-*  $\overrightarrow{CA}$と$\overrightarrow{CB}$の内積が負になる、すなわち $\overrightarrow{CA} \cdot \overrightarrow{CB} < 0$ という条件で判別できます。
+*  $\overrightarrow{CA}$ と $\overrightarrow{CB}$ の内積が負になる、すなわち $\overrightarrow{CA} \cdot \overrightarrow{CB} < 0$ という条件で判別できます。
 * この場合、最短距離は点Aと点Cの距離なので、以下のユークリッド距離の公式を用いて計算できます。
-
-    $$
-    \text{距離} = \sqrt{(a_x - c_x)^2 + (a_y - c_y)^2}
-    $$
+    * $\text{距離} = \sqrt{(a_x - c_x)^2 + (a_y - c_y)^2}$
 
 **ケース3：点Hが線分BC上にある場合**
 
@@ -2175,7 +2169,7 @@ $$
 
 **t の求め方**
 
-点Hは垂線の足なので、$\overrightarrow{AH}$と$\overrightarrow{BC}$は直交します。つまり、内積が0になります。
+点Hは垂線の足なので、$\overrightarrow{AH}$ と $\overrightarrow{BC}$ は直交します。つまり、内積が0になります。
 
 $$
 \overrightarrow{AH} \cdot \overrightarrow{BC} = 0
@@ -2191,7 +2185,7 @@ $$
 t = \frac{(\overrightarrow{OA} - \overrightarrow{OB}) \cdot \overrightarrow{BC}}{\overrightarrow{BC} \cdot \overrightarrow{BC}} =  \frac{\overrightarrow{BA} \cdot \overrightarrow{BC}}{\overrightarrow{BC} \cdot \overrightarrow{BC}}
 $$
 
-このようにして、$t$を求めることができます。
+このようにして、 $t$ を求めることができます。
 
 **点Hの座標の算出**
 
