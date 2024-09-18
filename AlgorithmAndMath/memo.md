@@ -2117,7 +2117,7 @@ def dp(N, A):
 
 **問題設定**
 
-2次元平面上に点Aと線分BCが存在するとします。点Aの座標を$(a_x, a_y)$、点Bの座標を$(b_x, b_y)$、点Cの座標を$(c_x, c_y)$とします。
+2次元平面上に点Aと線分BCが存在するとします。点Aの座標を $(a_x, a_y)$ 、点Bの座標を $(b_x, b_y)$ 、点Cの座標を $(c_x, c_y)$ とします。
 
 **目標**
 
@@ -2165,7 +2165,7 @@ $$
 \overrightarrow{OH} = \overrightarrow{OB} + t\overrightarrow{BC} \quad (0 \le t \le 1)
 $$
 
-ここで、 $\overrightarrow{OH}$ は原点Oから点Hへのベクトル、 $\overrightarrow{OB}$ は原点Oから点Bへのベクトルを表し、$t$ は線分BCに対する点Hの位置を表すパラメータです。$t$ が0のとき点Hは点Bと一致し、$t$ が1のとき点Hは点Cと一致します。
+ここで、 $\overrightarrow{OH}$ は原点Oから点Hへのベクトル、 $\overrightarrow{OB}$ は原点Oから点Bへのベクトルを表し、 $t$ は線分BCに対する点Hの位置を表すパラメータです。 $t$ が0のとき点Hは点Bと一致し、 $t$ が1のとき点Hは点Cと一致します。
 
 **t の求め方**
 
