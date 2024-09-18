@@ -2159,17 +2159,17 @@ def dp(N, A):
 
 **点Hの座標を求める**
 
-点Hは線分BC上の点なので、ベクトル$\overrightarrow{BC}$を用いて以下のように表せます。
+点Hは線分BC上の点なので、ベクトル $\overrightarrow{BC}$ を用いて以下のように表せます。
 
 $$
 \overrightarrow{OH} = \overrightarrow{OB} + t\overrightarrow{BC} \quad (0 \le t \le 1)
 $$
 
-ここで、$\overrightarrow{OH}$は原点Oから点Hへのベクトル、$\overrightarrow{OB}$は原点Oから点Bへのベクトルを表し、$t$は線分BCに対する点Hの位置を表すパラメータです。$t$が0のとき点Hは点Bと一致し、$t$が1のとき点Hは点Cと一致します。
+ここで、 $\overrightarrow{OH}$ は原点Oから点Hへのベクトル、 $\overrightarrow{OB}$ は原点Oから点Bへのベクトルを表し、$t$ は線分BCに対する点Hの位置を表すパラメータです。$t$ が0のとき点Hは点Bと一致し、$t$ が1のとき点Hは点Cと一致します。
 
 **t の求め方**
 
-点Hは垂線の足なので、$\overrightarrow{AH}$ と $\overrightarrow{BC}$ は直交します。つまり、内積が0になります。
+点Hは垂線の足なので、 $\overrightarrow{AH}$ と $\overrightarrow{BC}$ は直交します。つまり、内積が0になります。
 
 $$
 \overrightarrow{AH} \cdot \overrightarrow{BC} = 0
@@ -2189,7 +2189,7 @@ $$
 
 **点Hの座標の算出**
 
-$t$ が求まれば、点Hの座標$(h_x, h_y)$ は以下のようになります。
+$t$ が求まれば、点Hの座標 $(h_x, h_y)$ は以下のようになります。
 
 $$
 h_x = b_x + t(c_x - b_x)
