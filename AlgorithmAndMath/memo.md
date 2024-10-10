@@ -406,12 +406,14 @@ if __name__ == "__main__":
      これは、0から10までの数字が、最初は全部「素数かもしれない」状態ってことを表しているんだ。
      ```
      primes = [True, True, True, True, True, True, True, True, True, True, True]
+               (0)   (1)   (2)   (3)   (4)   (5)   (6)   (7)   (8)   (9)   (10)
      ```
 
    - 次に、`primes[0] = primes[1] = False` で、0と1を「素数じゃない」とマークする。
      なぜなら、素数は「1 と自分自身以外に約数を持たない数」のことだけど、0と1はこれに当てはまらないよね？
      ```
      primes = [False, False, True, True, True, True, True, True, True, True, True]
+               (0)    (1)    (2)   (3)   (4)   (5)   (6)   (7)   (8)   (9)   (10)
      ```
 
    - ここからが本番！ `for i in range(2, int(N**0.5)+1):` のループで、2から√10 (≒3.16なので、整数部分は3) までの数字 `i` を順番に見ていくよ。
@@ -424,11 +426,13 @@ if __name__ == "__main__":
          - `j` は 4, 6, 8, 10 と変化していき、その度に `primes[j]` を `False` にしていく。
            ```
            primes = [False, False, True, True, False, True, False, True, False, True, False]
+                     (0)    (1)    (2)   (3)   (4)    (5)   (6)    (7)   (8)    (9)   (10)
            ```
      - **`i = 3` のとき:**
        - `primes[3]` はまだ `True` なので、3の倍数(9)を「素数じゃない」とマークする。
          ```
          primes = [False, False, True, True, False, True, False, True, False, False, False]
+                  (0)     (1)    (2)   (3)   (4)    (5)   (6)    (7)   (8)    (9)   (10)
          ```
 
      - `i = 4` 以降は、√10 を超えるのでループに入らない。なぜなら、√N より大きい数の倍数は、
@@ -505,7 +509,7 @@ for i in range(N+1): # 0 から N まで順番に i を取り出す
 <br>
 <br>
 
-## [補足]`i for i in range(...)` の最初の `i` 
+## [補足]`i for i in range(...)` の最初の `i`
 
 `i for i in range(...)` の最初の `i` は、**「最終的にリストに追加したい値」** を表しています。
 
