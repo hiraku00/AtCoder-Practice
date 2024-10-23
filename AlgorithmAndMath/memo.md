@@ -2749,7 +2749,7 @@ def shortest_distance(A, B, C):
 
 2. **`distance(p1, p2)`**
    - この関数は、2点間のユークリッド距離を計算します。距離公式は次の通りです： <br>
-     $\text{distance} = \sqrt{(x2 - x1)^2 + (y2 - y1)^2}$
+     $\text{distance} = \sqrt{(x_2 - x_1)^2 + (y_2 - y_1)^2}$
    - これにより、2点の座標間の直線距離を計算できます。
 
 3. **`shortest_distance(A, B, C)`**
