@@ -4218,6 +4218,52 @@ def dfs(graph, N):
 6. `stack` が空になったので終了。`visited` を確認 -> `[True, True, True, True, False]`
 7. Eさんには伝言できていないので、`all(visited)` は **`False`** を返す
 
+[ref] log
+```
+*********************************** a, b : 1, 2
+[[1], [0], [], [], []]
+*********************************** a, b : 1, 3
+[[1, 2], [0], [0], [], []]
+*********************************** a, b : 2, 4
+[[1, 2], [0, 3], [0], [1], []]
+=============================================== v : 0
+stack : []
+visited[0] : False
+visited : [True, False, False, False, False]
+graph[0] : [1, 2]
+stack : [1, 2]
+=============================================== v : 2
+stack : [1]
+visited[2] : False
+visited : [True, False, True, False, False]
+graph[2] : [0]
+stack : [1, 0]
+=============================================== v : 0
+stack : [1]
+visited[0] : True
+stack : [1]
+=============================================== v : 1
+stack : []
+visited[1] : False
+visited : [True, True, True, False, False]
+graph[1] : [0, 3]
+stack : [0, 3]
+=============================================== v : 3
+stack : [0]
+visited[3] : False
+visited : [True, True, True, True, False]
+graph[3] : [1]
+stack : [0, 1]
+=============================================== v : 1
+stack : [0]
+visited[1] : True
+stack : [0]
+=============================================== v : 0
+stack : []
+visited[0] : True
+stack : []
+```
+
 **3. 結果発表！( `main` 関数 )**
 
 ```python
