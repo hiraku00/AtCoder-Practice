@@ -25,7 +25,7 @@ def main():
     edges = [tuple(map(int, input().split())) for _ in range(M)]
     graph = build_graph(N, edges)
     dist = bfs(N, graph)
-    print(*dist, sep='\n') 
+    print(*dist, sep='\n')
 
 if __name__ == "__main__":
     main()
