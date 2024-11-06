@@ -1,4 +1,5 @@
 from collections import deque
+
 def bfs(R, C, maze, start, goal):
     # 4方向（右、左、下、上）
     directions = [(0, 1), (0, -1), (1, 0), (-1, 0)]
