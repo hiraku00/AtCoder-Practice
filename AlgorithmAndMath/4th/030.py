@@ -8,6 +8,7 @@ def max_value(N, W, items):
             print(f'dp[{i-w}]    : {dp[i-w]}')
             print(f'dp[{i-w}]+{v} : {dp[i-w]+v}')
             dp[i] = max(dp[i], dp[i-w]+v)
+        print(dp)
     return dp[-1]
 
 def main():
