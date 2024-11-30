@@ -3139,7 +3139,7 @@ def dp(N, A):
 
 **問題設定**
 
-2次元平面上に点Aと線分BCが存在するとします。点Aの座標を $(a_x, a_y)$ 、点Bの座標を $(b_x, b_y)$ 、点Cの座標を $(c_x, c_y)$ とします。
+2次元平面上に点Aと線分BCが存在するとします。点Aの座標を $(a_x, \space a_y)$ 、点Bの座標を $(b_x, \space b_y)$ 、点Cの座標を $(c_x, \space c_y)$ とします。
 
 **目標**
 
@@ -3149,10 +3149,10 @@ def dp(N, A):
 
 まず、点A, B, C を使って、以下の4つのベクトルを計算します。
 
-* $\overrightarrow{BA} = (a_x - b_x, a_y - b_y)$
-* $\overrightarrow{BC} = (c_x - b_x, c_y - b_y)$
-* $\overrightarrow{CA} = (a_x - c_x, a_y - c_y)$
-* $\overrightarrow{CB} = (b_x - c_x, b_y - c_y)$
+* $\overrightarrow{BA} = (a_x - b_x, \space a_y - b_y)$
+* $\overrightarrow{BC} = (c_x - b_x, \space c_y - b_y)$
+* $\overrightarrow{CA} = (a_x - c_x, \space a_y - c_y)$
+* $\overrightarrow{CB} = (b_x - c_x, \space b_y - c_y)$
 
 **2. 最短距離になる点を探す**
 
