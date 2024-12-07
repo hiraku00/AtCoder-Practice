@@ -4029,151 +4029,86 @@ def output(N, cumulative_sum):
 ---
 # 040
 
-## コードの解説
+このコードはALGO鉄道の駅間移動距離を計算するプログラムです
 
-このコードは、ALGO鉄道の駅間距離と太郎君の訪問駅リストから、総移動距離を計算するプログラムです。
-
-### 関数 `calc_total_distance(A, M, B)`
 ```python
-def calc_total_distance(A, M, B):
+def calc_total_distance(N, A, M, B):
+    cumulative_sum = [0] * (N)
+    for i in range(N-1):
+        cumulative_sum[i+1] = cumulative_sum[i] + A[i]
+
     dist = 0
     for i in range(M-1):
-        start, end = B[i]-1, B[i+1]-1
-        if start < end:
-            dist += sum(A[start:end])
-        else:
-            dist += sum(A[end:start])
+        start = B[i] - 1
+        end = B[i+1] - 1
+        dist += abs(cumulative_sum[start] - cumulative_sum[end])
     return dist
-```
 
-
-この関数は、駅間距離リスト`A`、訪問駅数`M`、訪問駅リスト`B`を受け取り、総移動距離を計算して返します。
-
-1. **初期化:** `dist = 0` で、総移動距離を初期化します。
-
-2. **訪問駅間のループ:** `for i in range(M-1):` で、訪問駅間の移動を計算するためにループします。
-
-    - `start, end = B[i]-1, B[i+1]-1`:  訪問駅リスト`B`から、現在(`i`)と次の(`i+1`)駅のインデックスを取得します。リストのインデックスは0から始まるため、駅番号から1を引いています。
-
-    - **移動方向の判定:** `if start < end:` で、西から東へ向かう移動かどうかを判定します。
-
-        - **西から東への移動:** `dist += sum(A[start:end])`: `A[start:end]` で、`start`駅（含まれる）から`end`駅（含まれない）までの駅間距離リストを取得し、その合計を`dist`に加算します。
-
-        - **東から西への移動:** `dist += sum(A[end:start])`: 東から西への移動の場合は、`end`駅（含まれる）から`start`駅（含まれない）までの駅間距離リストを取得し、その合計を`dist`に加算します。
-
-3. **総移動距離の返却:** すべての訪問駅間の移動距離を計算したら、`return dist`で総移動距離を返します。
-
-### 関数 `main()`
-
-```python
 def main():
     N = int(input())
     A = list(map(int, input().split()))
     M = int(input())
     B = [int(input()) for _ in range(M)]
-    print(calc_total_distance(A, M, B))
+    print(calc_total_distance(N, A, M, B))
+
+if __name__ == "__main__":
+    main()
 ```
 
+**1. 累積和の計算**
 
-この関数は、プログラムのメイン処理を行います。
+`cumulative_sum = [0] * (N)`
 
-1. **入力の受け取り:**
-   - `N = int(input())`: 駅の数`N`を入力します。
-   - `A = list(map(int, input().split()))`: 駅間距離リスト`A`を入力します。
-   - `M = int(input())`: 訪問駅数`M`を入力します。
-   - `B = [int(input()) for _ in range(M)]`: 訪問駅リスト`B`を入力します。
+長さNのリスト`cumulative_sum`を作成し、0で初期化します。これは駅0から各駅までの距離を保存します。
 
-2. **総移動距離の計算と出力:** `print(calc_total_distance(A, M, B))` で、`calc_total_distance`関数を呼び出して総移動距離を計算し、結果を出力します。
+`for i in range(N-1):
+    cumulative_sum[i+1] = cumulative_sum[i] + A[i]`
+
+駅`i`と駅`i+1`間の距離`A[i]`を使って、累積和を計算します。`cumulative_sum[i+1]`には駅0から駅`i+1`までの距離が保存されます。
+
+**例:**
+
+N = 4、A = [8, 6, 9] の場合:
+
+* `cumulative_sum[0]` = 0
+* `cumulative_sum[1]` = 0 + 8 = 8
+* `cumulative_sum[2]` = 8 + 6 = 14
+* `cumulative_sum[3]` = 14 + 9 = 23
+
+`cumulative_sum`は[0, 8, 14, 23]となります。
+
+**2. 総移動距離の計算**
+
+`dist = 0`
+
+総移動距離`dist`を0で初期化します。
+
+`for i in range(M-1):
+    start = B[i] - 1
+    end = B[i+1] - 1
+    dist += abs(cumulative_sum[start] - cumulative_sum[end])`
+
+太郎君の移動経路`B`に基づいて、総移動距離を計算します。`B[i]`は`i`番目に訪れる駅です（1から始まるので、-1して0から始まるように調整）。`abs()`関数を使って、`start`駅と`end`駅の累積和の差の絶対値を計算することで、`start`駅から`end`駅までの距離を求め、`dist`に加算します。
+
+**例:**
+
+M = 6、B = [2, 1, 3, 2, 3, 4] の場合、`cumulative_sum` = [0, 8, 14, 23]を使って：
+
+* 駅1から駅0への移動距離: abs(8 - 0) = 8
+* 駅0から駅2への移動距離: abs(0 - 14) = 14
+* 駅2から駅1への移動距離: abs(14 - 8) = 6
+* 駅1から駅2への移動距離: abs(8 - 14) = 6
+* 駅2から駅3への移動距離: abs(14 - 23) = 9
+
+総移動距離`dist`は 8 + 14 + 6 + 6 + 9 = 43 となります。
 
 
-### `if __name__ == "__main__":`
+**3. 数学的な説明**
 
-この部分は、このPythonファイルが直接実行された場合にのみ、`main()`関数が実行されるようにするための記述です。
+累積和を使うことで、任意の2駅間の距離をO(1)の計算量で計算できます。全体の計算量はO(N + M)となり、NとMが大きい場合でも高速に計算できます。O(N)はNに比例する計算量、O(M)はMに比例する計算量、O(N+M)はNとMそれぞれに比例する計算量です。M回のループで毎回区間和を計算するとO(M*N)となり、NとMを掛けた計算量になるため非常に遅くなります。
 
-## 事例を使った処理過程の説明
+`abs()`関数を使うことで、`start`と`end`の大小関係を考慮する必要がなくなり、コードが簡潔になります。
 
-入力例1を例に、処理過程を説明します。
-
-**入力例1**
-```
-4
-8 6 9
-6
-2
-1
-3
-2
-3
-4
-```
-
-1. **入力の受け取り:**
-   - `N = 4`
-   - `A = [8, 6, 9]`
-   - `M = 6`
-   - `B = [2, 1, 3, 2, 3, 4]`
-
-2. **`calc_total_distance`関数の実行:**
-
-   - `dist = 0` で初期化
-
-   - **1回目のループ (i=0):**
-     - `start = 1`, `end = 0` (B[0]=2, B[1]=1)
-     - `start > end` なので、東から西への移動
-     - `dist += sum(A[0:1]) = 8` (駅1から駅2の距離)
-
-   - **2回目のループ (i=1):**
-     - `start = 0`, `end = 2` (B[1]=1, B[2]=3)
-     - `start < end` なので、西から東への移動
-     - `dist += sum(A[0:2]) = 14` (駅1から駅3の距離)
-
-   - **3回目のループ (i=2):**
-     - `start = 2`, `end = 1` (B[2]=3, B[3]=2)
-     - `start > end` なので、東から西への移動
-     - `dist += sum(A[1:2]) = 6` (駅3から駅2の距離)
-
-   - **4回目のループ (i=3):**
-     - `start = 1`, `end = 2` (B[3]=2, B[4]=3)
-     - `start < end` なので、西から東への移動
-     - `dist += sum(A[1:2]) = 6` (駅2から駅3の距離)
-
-   - **5回目のループ (i=4):**
-     - `start = 2`, `end = 3` (B[4]=3, B[5]=4)
-     - `start < end` なので、西から東への移動
-     - `dist += sum(A[2:3]) = 9` (駅3から駅4の距離)
-
-   - 最終的に `dist = 43` となり、これが総移動距離として出力されます。
-
-    [ref] log
-    ```
-    ===================== i : 0
-    start : 1
-    end   : 0
-    sum(A[0:1]) : 8
-    distance    : 8
-    ===================== i : 1
-    start : 0
-    end   : 2
-    sum(A[0:2]) : 14
-    distance    : 22
-    ===================== i : 2
-    start : 2
-    end   : 1
-    sum(A[1:2]) : 6
-    distance    : 28
-    ===================== i : 3
-    start : 1
-    end   : 2
-    sum(A[1:2]) : 6
-    distance    : 34
-    ===================== i : 4
-    start : 2
-    end   : 3
-    sum(A[2:3]) : 9
-    distance    : 43
-    ```
-
-このように、このプログラムは訪問駅リストに基づいて駅間の移動をシミュレートし、総移動距離を計算します。
 
 <br>
 <br>
