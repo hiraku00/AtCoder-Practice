@@ -4083,10 +4083,12 @@ N = 4、A = [8, 6, 9] の場合:
 
 総移動距離`dist`を0で初期化します。
 
-`for i in range(M-1):
+```python
+for i in range(M-1):
     start = B[i] - 1
     end = B[i+1] - 1
-    dist += abs(cumulative_sum[start] - cumulative_sum[end])`
+    dist += abs(cumulative_sum[start] - cumulative_sum[end])
+```
 
 太郎君の移動経路`B`に基づいて、総移動距離を計算します。`B[i]`は`i`番目に訪れる駅です（1から始まるので、-1して0から始まるように調整）。`abs()`関数を使って、`start`駅と`end`駅の累積和の差の絶対値を計算することで、`start`駅から`end`駅までの距離を求め、`dist`に加算します。
 
