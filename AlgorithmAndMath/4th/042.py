@@ -20,16 +20,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-# def solve():
-#     n = int(input())
-#     ans = 0
-#     for i in range(1, int(n**0.5) + 1):
-#         ans += i * (n // i - n // (i + 1)) * (i + n // i)  # iとn//iのペアの和を計算
-#     for i in range(1, int(n**0.5) + 1):
-#         if n // i > int(n**0.5):
-#             ans += (n // i) * i # n//i > sqrt(n)の場合のi*n//iを加算
-
-#     print(ans)
-
-# solve()
