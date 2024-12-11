@@ -29,10 +29,10 @@ def is_connected(n, edges):
     return uf.size == 1
 
 def main():
-    n, m = map(int, input().split())
-    edges = [tuple(map(int, input().split())) for _ in range(m)]
+    N, M = map(int, input().split())
+    edges = [tuple(map(int, input().split())) for _ in range(M)]
 
-    if is_connected(n, edges):
+    if is_connected(N, edges):
         print("The graph is connected.")
     else:
         print("The graph is not connected.")
