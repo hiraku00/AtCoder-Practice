@@ -339,3 +339,133 @@ if __name__ == "__main__":
 
 
 これが、`soup.select("ul.list-recent-posts li a")` がHTMLから記事情報を取得する仕組みです。
+
+<br>
+<br>
+
+---
+
+# 13
+
+**1. ライブラリのインポート**
+
+```python
+import numpy as np
+from sklearn.linear_model import LinearRegression
+import matplotlib.pyplot as plt
+```
+- `import numpy as np`: `numpy` ライブラリを `np` という名前でインポートします。NumPyは、数値計算を効率的に行うためのライブラリで、特に多次元配列（行列）の操作に便利です。
+- `from sklearn.linear_model import LinearRegression`: `scikit-learn` ライブラリから `LinearRegression` クラスをインポートします。これは、線形回帰モデルを作成・学習するためのクラスです。
+- `import matplotlib.pyplot as plt`: `matplotlib.pyplot` モジュールを `plt` という名前でインポートします。これは、グラフを描画するためのライブラリです。
+
+**2. データ準備**
+
+```python
+x = np.array([1, 2, 3, 4, 5]).reshape(-1, 1)
+y = np.array([2, 4, 5, 4, 5])
+```
+- `x = np.array([1, 2, 3, 4, 5]).reshape(-1, 1)`: 入力データ `x` をNumPy配列に変換しています。`.reshape(-1, 1)` は、配列を2次元配列に変換しています。ここで `-1` は、残りの次元を自動で計算するように指示しています。`1` は列の数を1にするという意味です。`scikit-learn` の `fit` メソッドに渡すデータは、2次元配列である必要があるため、このような変換を行っています。
+- `y = np.array([2, 4, 5, 4, 5])`: 出力データ `y` をNumPy配列に変換しています。
+
+**3. 線形回帰モデルの作成と学習**
+
+```python
+model = LinearRegression()
+model.fit(x, y)
+```
+- `model = LinearRegression()`: `LinearRegression` クラスのインスタンスを作成し、`model` 変数に格納します。これが線形回帰モデルのオブジェクトとなります。
+- `model.fit(x, y)`: モデルを学習データ `x` と `y` を使って学習させます。この `fit` メソッドが、データに基づいて回帰直線の係数（傾きと切片）を計算します。
+
+**4. 予測**
+
+```python
+x_pred = np.array([3.5]).reshape(-1, 1)
+y_pred = model.predict(x_pred)
+print(y_pred)
+```
+- `x_pred = np.array([3.5]).reshape(-1, 1)`: 予測したい `x` の値 (3.5) をNumPy配列に変換し、`reshape(-1, 1)` で2次元配列にしています。 `scikit-learn` の `predict` メソッドに渡すデータも2次元配列である必要があるため、このような変換を行っています。
+- `y_pred = model.predict(x_pred)`: 学習済みのモデル `model` を使って、`x_pred` に対する `y` の値を予測します。
+- `print(y_pred)`: 予測結果 `y_pred` を表示します。
+
+**5. グラフ描画**
+
+```python
+x_plot = np.linspace(0, 6, 100).reshape(-1, 1)
+y_plot = model.predict(x_plot)
+plt.scatter(x, y, label="data")
+plt.plot(x_plot, y_plot, label="regression", color="red")
+plt.scatter(x_pred, y_pred, label="prediction", color="green")
+plt.legend()
+plt.show()
+```
+- `x_plot = np.linspace(0, 6, 100).reshape(-1, 1)`: 0から6までの範囲で100個の値を生成し、NumPy配列に変換します。`.reshape(-1, 1)` は、2次元配列に変換します。これは、回帰直線を描画するための `x` 座標のセットです。
+- `y_plot = model.predict(x_plot)`: 生成した `x_plot` の値に対応する `y` の予測値を計算します。
+- `plt.scatter(x, y, label="data")`: 学習データ `x` と `y` を散布図としてプロットします。`label="data"` は凡例に表示するためのラベルです。
+- `plt.plot(x_plot, y_plot, label="regression", color="red")`: 回帰直線を描画します。`label="regression"` は凡例に表示するためのラベルで、`color="red"` は線の色を赤色に指定します。
+- `plt.scatter(x_pred, y_pred, label="prediction", color="green")`: 予測点 `(x_pred, y_pred)` を散布図としてプロットします。`label="prediction"` は凡例に表示するためのラベルで、`color="green"` は点の色を緑色に指定します。
+- `plt.legend()`: グラフに凡例を表示します。
+- `plt.show()`: グラフを表示します。
+
+**コードのまとめ**
+
+このコードは、与えられたデータに対して線形回帰モデルを学習し、指定された `x` の値に対する `y` の値を予測します。さらに、元のデータ、回帰直線、予測点をグラフで視覚的に表示します。`scikit-learn` ライブラリを使って線形回帰モデルを簡単に構築・利用できること、`matplotlib` ライブラリを使ってグラフを簡単に描画できることを示しています。
+
+## [補足] reshape(-1, 1)をする理由と、その効果について
+
+### reshape(-1, 1)とは？
+
+`reshape(-1, 1)` は、NumPy配列の形状を調整する関数であるreshape()を用いた操作です。
+
+* **-1の意味:** reshape()の引数に-1を指定すると、その次元における要素の数が自動的に計算されます。つまり、他の次元の要素数から、-1の部分の要素数が決まるということです。
+* **(1)の意味:** 2番目の引数の1は、新しい配列の列数が1になることを意味します。
+
+### reshape(-1, 1)をする理由
+
+scikit-learnのような機械学習ライブラリでは、多くのモデルが2次元配列を期待します。特に、特徴量（説明変数）は、サンプル数×特徴量数の2次元配列として与えることが一般的です。
+
+今回の例では、`x`は5つの数値の1次元配列ですが、`reshape(-1, 1)`によって、行数が5、列数が1の2次元配列に変換されます。これにより、scikit-learnの`LinearRegression`モデルに直接入力できる形式になります。
+
+### reshape(-1, 1)の前後での値の変化
+
+reshape操作は、配列の要素の値自体は変更しません。あくまで、配列の形状（行数と列数）のみを変更します。
+
+**例:**
+
+```python
+import numpy as np
+
+x = np.array([1, 2, 3, 4, 5])  # 元の配列
+print(x.shape)  # (5,)
+
+x_reshaped = x.reshape(-1, 1)
+print(x_reshaped)
+print(x_reshaped.shape)  # (5, 1)
+```
+
+上記のコードを実行すると、以下の出力が得られます。
+
+```
+(5,)
+[[1]
+ [2]
+ [3]
+ [4]
+ [5]]
+(5, 1)
+```
+
+* `x`は、形状が(5,)の1次元配列です。
+* `x_reshaped`は、reshape操作によって形状が(5, 1)の2次元配列に変換されています。しかし、要素の値自体は元の`x`と同じです。
+
+### まとめ
+
+reshape(-1, 1)は、1次元配列をscikit-learnなどの機械学習ライブラリで扱いやすい2次元配列に変換するための一般的な手法です。特に、特徴量をモデルに入力する際に、この操作を行うことが多く見られます。
+
+**ポイント:**
+
+* reshape(-1, 1)は、要素の値を変更するのではなく、配列の形状を変更します。
+* -1は、その次元の要素数を自動的に計算することを意味します。
+* scikit-learnの多くのモデルは、特徴量を2次元配列として期待します。
+
+この操作を理解することで、よりスムーズに機械学習のモデルを構築することができます。
+
