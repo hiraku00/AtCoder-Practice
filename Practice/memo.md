@@ -469,3 +469,49 @@ reshape(-1, 1)は、1次元配列をscikit-learnなどの機械学習ライブ�
 
 この操作を理解することで、よりスムーズに機械学習のモデルを構築することができます。
 
+<br>
+<br>
+
+---
+
+# 17
+
+- devcontainer.json の `"dockerFile": "Dockerfile"` を `"dockerFile": ".devcontainer/Dockerfile",` へ変更
+```json
+{
+  "name": "AtCoder",
+  // "dockerFile": "Dockerfile",
+  "dockerFile": ".devcontainer/Dockerfile",
+  "extensions": ["ms-python.python"]
+}
+```
+
+- Dockerfile の `RUN pip install flask` 以降をコメントアウト
+```Dockerfile
+・・・
+# Flaskのインストール
+RUN pip install flask
+
+# アプリケーションのディレクトリ作成
+WORKDIR /app
+
+RUN ls -la #  ls -la コマンドを追加
+
+# ホストのファイルをコンテナにコピー (Practice/17の中身をコピー)
+# ビルドコンテキストから見たパスを指定
+COPY ./Practice/17 /app
+
+# ポート番号を指定
+EXPOSE 5000
+
+# Flask アプリケーションの実行
+CMD ["python", "app.py"]
+```
+
+- ターミナル（ローカル）から各 docker コマンドを実行する。
+```bash
+docker build --no-cache -t my-flask-app -f .devcontainer/Dockerfile .
+docker run -d -p 8000:5000 my-flask-app
+```
+
+- http://localhost:8000/ にアクセスする。
