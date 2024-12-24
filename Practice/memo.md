@@ -515,3 +515,119 @@ docker run -d -p 8000:5000 my-flask-app
 ```
 
 - http://localhost:8000/ にアクセスする。
+
+<br>
+<br>
+
+---
+
+# 21.py
+
+```python
+import threading
+
+def fizzbuzz(start, end):
+    for i in range(start, end+ 1 ):
+        if i % 15 == 0:
+            print(f"{threading.current_thread().name} : FizzBuzz")
+        elif i % 3 == 0:
+            print(f"{threading.current_thread().name} : Fizz")
+        elif i % 5 == 0:
+            print(f"{threading.current_thread().name} : Buzz")
+        else:
+            print(f"{threading.current_thread().name} : {i}")
+
+if __name__ == "__main__":
+    threads = []
+    threads.append(threading.Thread(target=fizzbuzz, args=(1, 33), name="Thread1"))
+    threads.append(threading.Thread(target=fizzbuzz, args=(36, 66), name="Thread2"))
+    threads.append(threading.Thread(target=fizzbuzz, args=(67, 100), name="Thread3"))
+
+    for thread in threads:
+        thread.start()
+
+    for thread in threads:
+        thread.join()
+```
+
+## マルチスレッド処理の基本：複数の処理を同時に進める
+
+このプログラムは、複数の処理を「同時に」行うために、Pythonの `threading` モジュールを利用しています。
+
+### 1. `import threading`：マルチスレッド機能を使う準備
+
+```python
+import threading
+```
+
+まず、`import threading` という行から始まります。これは、Pythonに「これからマルチスレッド機能を使いますよ」と伝えるための宣言です。`threading` モジュールには、複数の処理の流れ（スレッド）を制御するための機能がまとめられています。
+
+### 2. `def fizzbuzz(start, end):`：スレッドで実行する処理を定義
+
+```python
+def fizzbuzz(start, end):
+    for i in range(start, end+ 1 ):
+        if i % 15 == 0:
+            print(f"{threading.current_thread().name} : FizzBuzz")
+        elif i % 3 == 0:
+            print(f"{threading.current_thread().name} : Fizz")
+        elif i % 5 == 0:
+            print(f"{threading.current_thread().name} : Buzz")
+        else:
+            print(f"{threading.current_thread().name} : {i}")
+```
+
+次に、`def fizzbuzz(start, end):` という部分で、スレッドで実行する具体的な処理を定義しています。この `fizzbuzz` 関数は、指定された範囲 (`start` から `end` まで) の数値に対して、FizzBuzzのルールに従って結果を出力する処理を行います。
+
+- `for i in range(start, end + 1):`: この行は、`start` から `end` までの数値を順番に処理するためのループです。
+- `if i % 15 == 0:`、`elif i % 3 == 0:`、`elif i % 5 == 0:`、`else:`: これらの条件分岐は、FizzBuzzのルールに従って出力する内容を決定します。ここではFizzBuzzの具体的な説明は割愛しますが、それぞれの条件に応じて "FizzBuzz"、"Fizz"、"Buzz"、または数値を表示します。
+- `print(f"{threading.current_thread().name} : ...")`: この行は、現在のスレッドの名前と出力結果を表示します。`threading.current_thread().name` で、どのスレッドがこの出力を行ったかを確認できます。
+
+### 3. `if __name__ == "__main__":`：プログラムの実行開始点
+
+```python
+if __name__ == "__main__":
+    # ... スレッドの作成と開始、終了待ち処理 ...
+```
+
+`if __name__ == "__main__":` という部分は、Pythonスクリプトが直接実行された場合にのみ、その中のコードが実行されるようにするための決まり文句です。
+
+### 4. スレッドオブジェクトの作成とリストへの追加
+
+```python
+threads = []
+threads.append(threading.Thread(target=fizzbuzz, args=(1, 33), name="Thread1"))
+threads.append(threading.Thread(target=fizzbuzz, args=(36, 66), name="Thread2"))
+threads.append(threading.Thread(target=fizzbuzz, args=(67, 100), name="Thread3"))
+```
+
+ここでは、3つのスレッドオブジェクトを作成し、`threads` というリストに追加しています。
+
+- `threads = []`: 空のリスト `threads` を作成し、後で作成するスレッドオブジェクトを格納するために使用します。
+- `threading.Thread(target=fizzbuzz, args=(1, 33), name="Thread1")`:  `threading.Thread()` を使って新しいスレッドオブジェクトを作成します。
+    - `target=fizzbuzz`: このスレッドで実行する関数として、先ほど定義した `fizzbuzz` 関数を指定します。
+    - `args=(1, 33)`: `fizzbuzz` 関数に渡す引数をタプルで指定します。この場合、`start` に `1`、`end` に `33` が渡されます。つまり、"Thread1" は 1 から 33 までの数値を処理します。
+    - `name="Thread1"`: スレッドに "Thread1" という名前を付けます。これにより、どのスレッドが処理を行っているか区別できます。
+- 同様の処理で、"Thread2" は 36 から 66 まで、"Thread3" は 67 から 100 までの数値を処理するスレッドオブジェクトが作成されます。
+
+### 5. スレッドの開始
+
+```python
+for thread in threads:
+    thread.start()
+```
+
+このループは、`threads` リストに格納されている各スレッドオブジェクトに対して `start()` メソッドを呼び出します。`start()` メソッドが呼び出されると、新しいスレッドが生成され、`target` で指定した関数 (`fizzbuzz`) の実行が開始されます。重要なのは、この時点で各スレッドは（見かけ上）同時に処理を開始するということです。
+
+### 6. スレッドの終了待ち
+
+```python
+for thread in threads:
+    thread.join()
+```
+
+このループは、`threads` リストに格納されている各スレッドオブジェクトに対して `join()` メソッドを呼び出します。`join()` メソッドは、そのスレッドの処理が完了するまで、現在のスレッド（この場合はメインスレッド）の実行を一時停止させます。言い換えれば、この部分でプログラムは、すべてのスレッドが処理を終えるのを待ってから次の処理に進むようになります。もし `join()` がないと、メインスレッドは子スレッドの完了を待たずにプログラムが終了してしまう可能性があります。
+
+### まとめ：マルチスレッドによる並行処理
+
+このコードは、`threading` モジュールを使って複数のスレッドを作成し、それぞれに `fizzbuzz` 関数を実行させることで、処理を並行して行う方法を示しています。各スレッドは指定された範囲の数値を独立して処理し、その結果を出力します。`start()` メソッドでスレッドを開始し、`join()` メソッドでスレッドの完了を待つ、というのがマルチスレッド処理の基本的な流れです。この並行処理によって、全体としての処理時間を短縮できる可能性があります。
