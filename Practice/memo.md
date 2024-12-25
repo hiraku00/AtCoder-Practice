@@ -631,3 +631,105 @@ for thread in threads:
 ### まとめ：マルチスレッドによる並行処理
 
 このコードは、`threading` モジュールを使って複数のスレッドを作成し、それぞれに `fizzbuzz` 関数を実行させることで、処理を並行して行う方法を示しています。各スレッドは指定された範囲の数値を独立して処理し、その結果を出力します。`start()` メソッドでスレッドを開始し、`join()` メソッドでスレッドの完了を待つ、というのがマルチスレッド処理の基本的な流れです。この並行処理によって、全体としての処理時間を短縮できる可能性があります。
+
+---
+
+# 22
+
+### Dockerfile の修正
+```Dockerfile
+FROM python:3.11
+
+# MeCab と関連パッケージをインストール (requirements.txt に含める場合は削除可能)
+RUN apt-get update && \
+    apt-get install -y mecab libmecab-dev mecab-ipadic-utf8
+
+# .devcontainer/requirements.txt をコピーしてインストール
+COPY .devcontainer/requirements.txt /tmp/requirements.txt
+RUN pip install -r /tmp/requirements.txt
+
+# アプリケーションのディレクトリを作成し、そこに移動
+WORKDIR /app
+
+# ホストのファイルをコンテナにコピー (プロジェクトルート全体をコピーすると仮定)
+COPY .. /app
+
+# ポート番号を指定
+EXPOSE 5000
+
+# Flask アプリケーションの実行
+CMD ["python", "Practice/22/app.py"]
+```
+
+### devcontainer.json の修正
+```json
+{
+  "name": "AtCoder",
+  // "dockerFile": "Dockerfile",
+  "dockerFile": ".devcontainer/Dockerfile",
+  "extensions": ["ms-python.python"]
+}
+```
+
+### Docker イメージのビルド:
+```bash
+docker build -t devcontainer-exercise20 -f .devcontainer/Dockerfile .
+```
+
+### Docker コンテナの起動:
+```bash
+docker run --name devcontainer-exercise20-instance -p 8000:5000 -v $(pwd):/app -it devcontainer-exercise20 /bin/bash
+```
+
+### コンテナ内で Flask アプリケーションを起動:
+```bash
+cd Practice/22
+python app.py
+```
+
+ブラウザで http://localhost:8000/users にアクセス
+```
+{
+  "users": [
+    {
+      "age": 20,
+      "id": 1,
+      "name": "Alice"
+    },
+    {
+      "age": null,
+      "id": 2,
+      "name": "Bob"
+    },
+  ]
+}
+```
+
+### ユーザー追加:
+ターミナルで curl コマンドを実行
+```bash
+curl -X POST -H "Content-Type: application/json" -d '{"name": "Charlie", "age": 30}'
+```
+
+ブラウザで http://localhost:8000/users にアクセス
+```
+{
+  "users": [
+    {
+      "age": 20,
+      "id": 1,
+      "name": "Alice"
+    },
+    {
+      "age": null,
+      "id": 2,
+      "name": "Bob"
+    },
+    {
+      "age": 30,
+      "id": 3,
+      "name": "Charlie"
+    }
+  ]
+}
+```
