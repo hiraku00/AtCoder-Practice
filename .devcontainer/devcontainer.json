@@ -1,6 +1,6 @@
 {
   "name": "AtCoder",
-  // "dockerFile": "Dockerfile",
-  "dockerFile": ".devcontainer/Dockerfile",
+  "dockerFile": "Dockerfile",
+  // "dockerFile": ".devcontainer/Dockerfile",
   "extensions": ["ms-python.python"]
 }
