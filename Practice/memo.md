@@ -911,3 +911,185 @@ if tag_title and tag_time:
 このコードは、まるでPython公式サイトのHTMLという地図を読み解き、特定の場所（`div` タグで囲まれたイベントリストの中の `li` タグ）に注目し、そこから「イベントタイトル」と「開催日時」が書かれた看板 (`<a>` タグと `<time>` タグ) を見つけ出して、情報を抜き出しているのです。
 
 Webページの構造は変更される可能性があるため、もしPython公式サイトのデザインが変わると、このコードも修正が必要になる場合があります。しかし、基本的な考え方は同じで、「目的の情報がHTMLのどこに、どのようなタグで囲まれているか」を理解することが、Webスクレイピングの第一歩となります。
+
+
+<br>
+<br>
+
+---
+
+# 24
+
+```python
+import os
+from PIL import Image
+
+folder_in = "images"
+folder_out = "resized_images"
+target_width = 500
+
+def resize_images(folder_in, folder_out, target_width):
+    if not os.path.exists(folder_out):
+        os.makedirs(folder_out)
+
+    for file in os.listdir(folder_in):
+        if file.lower().endswith(('jpg', 'jpeg', 'png', 'gif')):
+            try:
+                # open the image
+                image_path = os.path.join(folder_in, file)
+                img = Image.open(image_path)
+                # convert the image to RGB if it's not
+                if img.mode != 'RGB':
+                    img = img.convert('RGB')
+                # get the original size
+                original_width, original_height = img.size
+                # calculate the aspect ratio
+                aspect_ratio = original_width / original_height
+                # calculate the new height after resizing
+                new_height = int(target_width / aspect_ratio)
+                # resize the image
+                resized_img = img.resize((target_width, new_height), Image.LANCZOS)
+                # save the resized image
+                output_path = os.path.join(folder_out, file)
+                resized_img.save(output_path)
+
+                print(f'{file} was resized successfully')
+
+            except Exception as e:
+                print(f'Error resizing {file}: {str(e)}')
+
+if __name__ == '__main__':
+    resize_images(folder_in, folder_out, target_width)
+    print(f'Successfully resized all images in {folder_in} folder')
+```
+
+**コード全体の概要**
+
+このプログラムは、指定されたフォルダ (`images`) 内の画像ファイルを、指定された幅 (`500`ピクセル) にリサイズし、リサイズ後の画像を別のフォルダ (`resized_images`) に保存するものです。縦のサイズは、元の画像の縦横比（アスペクト比）を維持するように自動的に計算されます。
+
+**コードの先頭部分**
+
+```python
+import os
+from PIL import Image
+```
+
+* **`import os`**:  これは「os」という名前の機能の詰まった箱をプログラムに持ってきて使えるようにする命令です。この箱には、パソコンのファイルやフォルダを操作するための道具がたくさん入っています。例えば、「指定したフォルダの中にどんなファイルがあるか調べてきて！」とか、「新しいフォルダを作って！」といったお願いができます。
+
+* **`from PIL import Image`**:  これは「PIL (Pillow)」という画像処理専門の道具箱の中から、「Image」という特別な道具だけを取り出して使えるようにする命令です。この「Image」という道具を使うと、画像を開いたり、サイズを変えたり、色を変えたり、保存したりといった、画像に関する色々な作業ができるようになります。
+
+**設定部分**
+
+```python
+folder_in = "images"
+folder_out = "resized_images"
+target_width = 500
+```
+
+ここでは、プログラムで使う設定値を名前をつけて保存しています。
+
+* **`folder_in = "images"`**: リサイズしたい画像が入っているフォルダの名前を「`images`」として覚えておきます。「入力フォルダはここだよ！」とプログラムに教えるようなものです。
+* **`folder_out = "resized_images"`**: リサイズが終わった画像を保存するフォルダの名前を「`resized_images`」として覚えておきます。「リサイズ後の画像はここに保存してね！」と指示するイメージです。
+* **`target_width = 500`**: リサイズ後の画像の幅を `500` ピクセルにすることを覚えておきます。「リサイズ後の画像の横幅は500ピクセルにしてね！」という設定です。
+
+**`resize_images` 関数**
+
+```python
+def resize_images(folder_in, folder_out, target_width):
+    # ... (関数の処理内容)
+```
+
+`def resize_images(folder_in, folder_out, target_width):` は、画像をリサイズする一連の処理をまとめた「resize_images」という名前の箱を作る命令です。この箱には、入力フォルダ名 (`folder_in`)、出力フォルダ名 (`folder_out`)、目標の幅 (`target_width`) という３つの入口があります。必要なものを入口から入れてあげると、箱の中でリサイズの処理が行われるイメージです。
+
+**出力フォルダの作成**
+
+```python
+    if not os.path.exists(folder_out):
+        os.makedirs(folder_out)
+```
+
+* **`if not os.path.exists(folder_out):`**:  ここで、`os`箱に入っている `path.exists` という道具を使って、「`folder_out`」で指定された名前のフォルダがすでに存在するかどうかを確認しています。`not` が付いているので、「もし存在していなかったら」という意味になります。
+    * 例えば、`folder_out` が "resized_images" だった場合、「resized_images という名前のフォルダ、もうあるかな？」と確認します。
+* **`os.makedirs(folder_out)`**:  もしフォルダが存在していなかった場合、`os`箱に入っている `makedirs` という道具を使って、指定された名前のフォルダを作成します。
+    * 例えば、"resized_images" フォルダがなかったら、「よし、resized_images という名前のフォルダを作ろう！」と実行します。これで、リサイズ後の画像を保存する場所が確保できます。
+
+**フォルダ内のファイルを処理するループ**
+
+```python
+    for file in os.listdir(folder_in):
+        if file.lower().endswith(('jpg', 'jpeg', 'png', 'gif')):
+            # ... (画像処理のコード)
+```
+
+* **`for file in os.listdir(folder_in):`**: `os`箱に入っている `listdir` という道具を使って、入力フォルダ (`folder_in`) の中にあるすべてのファイルやフォルダの名前をリスト形式で取得し、一つずつ順番に `file` という名前の箱に入れて、以下の処理を繰り返します。
+    * 例えば、`folder_in` が "images" フォルダで、中に "photo1.jpg", "logo.png", "document.txt" というファイルがあった場合、最初に `file` に "photo1.jpg" が入り、次に "logo.png" が入り、最後に "document.txt" が入ります。
+* **`if file.lower().endswith(('jpg', 'jpeg', 'png', 'gif')):`**:  `file` に入っているファイル名が、指定された拡張子 (`.jpg`, `.jpeg`, `.png`, `.gif`) のいずれかで終わっているかどうかを確認します。
+    * `.lower()` を使うことで、大文字・小文字を区別せずにチェックできます。例えば、"Photo.JPG" も "photo.jpg" と同じように扱われます。
+    * 例えば、`file` が "photo1.jpg" の場合、`.jpg` で終わっているので、`if` の条件は `True` になり、以下の画像処理のコードが実行されます。しかし、`file` が "document.txt" の場合、`.txt` で終わっているので、`if` の条件は `False` になり、画像処理のコードはスキップされます。
+
+**画像処理 (try...except ブロック)**
+
+```python
+            try:
+                # open the image
+                image_path = os.path.join(folder_in, file)
+                img = Image.open(image_path)
+                # convert the image to RGB if it's not
+                if img.mode != 'RGB':
+                    img = img.convert('RGB')
+                # get the original size
+                original_width, original_height = img.size
+                # calculate the aspect ratio
+                aspect_ratio = original_width / original_height
+                # calculate the new height after resizing
+                new_height = int(target_width / aspect_ratio)
+                # resize the image
+                resized_img = img.resize((target_width, new_height), Image.LANCZOS)
+                # save the resized image
+                output_path = os.path.join(folder_out, file)
+                resized_img.save(output_path)
+
+                print(f'{file} was resized successfully')
+
+            except Exception as e:
+                print(f'Error resizing {file}: {str(e)}')
+```
+
+* **`try:`**:  ここでは、「これから行う処理でエラーが起きるかもしれないけど、もしエラーが起きたら、教えてね！」とプログラムにお願いしています。
+* **`image_path = os.path.join(folder_in, file)`**: `os`箱に入っている `path.join` という道具を使って、入力フォルダ名 (`folder_in`) とファイル名 (`file`) を組み合わせて、画像ファイルの正確な場所（パス）を作成します。
+    * 例えば、`folder_in` が "images" で、`file` が "photo1.jpg" の場合、`image_path` は "images/photo1.jpg" になります。
+* **`img = Image.open(image_path)`**: `PIL`箱から取り出した `Image` 道具に入っている `open` 機能を使って、指定されたパスの画像ファイルを開き、その画像データを `img` という名前の箱に入れます。これで、画像ファイルの中身を操作できるようになります。
+    * 例えば、"images/photo1.jpg" の画像ファイルを開いて、そのデータを `img` に入れます。
+* **`if img.mode != 'RGB':`**: 画像のカラーモードが RGB (Red, Green, Blue の３つの色の組み合わせで色を表現する方法) でないかどうかを確認します。
+* **`img = img.convert('RGB')`**:  もし画像のカラーモードが RGB でない場合、`convert('RGB')` 機能を使って、画像を RGB モードに変換します。これは、JPEG 形式で画像を保存するためによく行われる処理です。例えば、RGBA (透明度情報を持つ RGB) モードの PNG 画像を JPEG に保存する場合などに、この変換が必要になります。
+* **`original_width, original_height = img.size`**:  開いた画像 (`img`) の元の幅と高さを取得して、それぞれ `original_width` と `original_height` という名前の箱に入れます。
+    * 例えば、`img` が 1920x1080 の画像だった場合、`original_width` には 1920 が、`original_height` には 1080 が入ります。
+* **`aspect_ratio = original_width / original_height`**:  元の画像の縦横比（アスペクト比）を計算します。これは、元の幅を高さで割ることで求められます。
+    * 例えば、元の画像が 1920x1080 の場合、アスペクト比は 1920 / 1080 = 1.777... となります。
+* **`new_height = int(target_width / aspect_ratio)`**:  リサイズ後の新しい高さを計算します。目標の幅 (`target_width`) をアスペクト比で割ることで求められます。`int()` を使うことで、計算結果を整数にします。
+    * 例えば、`target_width` が 500 で、アスペクト比が 1.777... の場合、新しい高さは 500 / 1.777... = 281.25... となり、`int()` によって 281 になります。
+* **`resized_img = img.resize((target_width, new_height), Image.LANCZOS)`**:  `PIL`箱の `Image` 道具に入っている `resize` 機能を使って、画像 (`img`) のサイズを新しい幅 (`target_width`) と新しい高さ (`new_height`) に変更します。`Image.LANCZOS` は、リサイズの際に画質を良くするための高品質なアルゴリズムを指定しています。
+    * 例えば、画像を (500, 281) のサイズにリサイズします。
+* **`output_path = os.path.join(folder_out, file)`**:  リサイズ後の画像を保存する場所の正確なパスを作成します。出力フォルダ名 (`folder_out`) と元のファイル名 (`file`) を組み合わせます。
+    * 例えば、`folder_out` が "resized_images" で、`file` が "photo1.jpg" の場合、`output_path` は "resized_images/photo1.jpg" になります。
+* **`resized_img.save(output_path)`**:  リサイズされた画像 (`resized_img`) を、作成したパス (`output_path`) に保存します。
+    * 例えば、リサイズされた画像を "resized_images/photo1.jpg" という名前で保存します。
+* **`print(f'{file} was resized successfully')`**:  リサイズが成功した場合、どのファイルがリサイズされたかを示すメッセージを画面に表示します。
+    * 例えば、「photo1.jpg was resized successfully」と表示されます。
+* **`except Exception as e:`**:  `try` ブロックの中で何らかのエラーが発生した場合、そのエラーの内容を `e` という名前の箱に入れて、ここから処理を行います。「もしエラーが起きたら、この処理をしてね！」という意味です。
+* **`print(f'Error resizing {file}: {str(e)}')`**:  リサイズ中にエラーが発生した場合、どのファイルでどのようなエラーが起きたかを示すメッセージを画面に表示します。
+    * 例えば、「Error resizing photo2.png: cannot write mode RGBA as JPEG」のように表示されます。
+
+**プログラムの実行部分**
+
+```python
+if __name__ == '__main__':
+    resize_images(folder_in, folder_out, target_width)
+    print(f'Successfully resized all images in {folder_in} folder')
+```
+
+* **`if __name__ == '__main__':`**:  この行は、「このPythonファイルがプログラムとして直接実行された場合にだけ、以下のコードを実行してください」という意味のおまじないのようなものです。
+* **`resize_images(folder_in, folder_out, target_width)`**:  先ほど作った `resize_images` という名前の処理の箱を動かす命令です。箱の入口に、入力フォルダ名 (`folder_in`)、出力フォルダ名 (`folder_out`)、目標の幅 (`target_width`) を入れてあげます。
+* **`print(f'Successfully resized all images in {folder_in} folder')`**:  すべての画像のリサイズ処理が正常に完了した場合に、その旨を知らせるメッセージを画面に表示します。
+    * 例えば、「Successfully resized all images in images folder」と表示されます。
+
