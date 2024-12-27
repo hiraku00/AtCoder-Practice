@@ -7,7 +7,9 @@ RUN apt-get update && \
 # mecab-python3のインストール
 RUN pip install mecab-python3
 # Pythonでよく使うライブラリをインストール
-RUN pip install numpy scikit-learn matplotlib pandas requests bs4
+RUN pip install numpy scikit-learn matplotlib pandas
+# 追加
+RUN pip install requests bs4 pillow
 
 # # .devcontainer/requirements.txt をコピーしてインストール
 # COPY .devcontainer/requirements.txt /tmp/requirements.txt
