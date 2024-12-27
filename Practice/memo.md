@@ -1092,4 +1092,3 @@ if __name__ == '__main__':
 * **`resize_images(folder_in, folder_out, target_width)`**:  先ほど作った `resize_images` という名前の処理の箱を動かす命令です。箱の入口に、入力フォルダ名 (`folder_in`)、出力フォルダ名 (`folder_out`)、目標の幅 (`target_width`) を入れてあげます。
 * **`print(f'Successfully resized all images in {folder_in} folder')`**:  すべての画像のリサイズ処理が正常に完了した場合に、その旨を知らせるメッセージを画面に表示します。
     * 例えば、「Successfully resized all images in images folder」と表示されます。
-
