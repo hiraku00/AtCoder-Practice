@@ -10,6 +10,8 @@ RUN pip install mecab-python3
 RUN pip install numpy scikit-learn matplotlib pandas
 # 追加
 RUN pip install requests bs4 pillow
+# PyTorchのインストール
+RUN pip install torch torchvision torchaudio
 
 # # .devcontainer/requirements.txt をコピーしてインストール
 # COPY .devcontainer/requirements.txt /tmp/requirements.txt

@@ -1092,3 +1092,288 @@ if __name__ == '__main__':
 * **`resize_images(folder_in, folder_out, target_width)`**:  先ほど作った `resize_images` という名前の処理の箱を動かす命令です。箱の入口に、入力フォルダ名 (`folder_in`)、出力フォルダ名 (`folder_out`)、目標の幅 (`target_width`) を入れてあげます。
 * **`print(f'Successfully resized all images in {folder_in} folder')`**:  すべての画像のリサイズ処理が正常に完了した場合に、その旨を知らせるメッセージを画面に表示します。
     * 例えば、「Successfully resized all images in images folder」と表示されます。
+<<<<<<< HEAD
+=======
+
+<br>
+<br>
+
+---
+
+# 25
+
+行しました。以下に修正版のコード解説を示します。
+
+## 1. ライブラリのインポート
+
+```python
+import torch
+import torch.nn as nn
+import torch.optim as optim
+from torchvision import datasets, transforms
+from torch.utils.data import DataLoader
+```
+
+このセクションでは、プログラムで使用する様々な機能を提供するライブラリをインポートしています。
+
+*   `import torch`:  PyTorchの基本的な機能を提供します。テンソル演算、自動微分などのコア機能が含まれます。
+*   `import torch.nn as nn`: ニューラルネットワークを構築するための様々なモジュールを提供します。例えば、線形層 (`nn.Linear`)、畳み込み層 (`nn.Conv2d`)、活性化関数 (`torch.relu`) などが含まれます。`nn` というエイリアスで参照できるようにしています。
+*   `import torch.optim as optim`:  ニューラルネットワークのパラメータを最適化するための様々なアルゴリズムを提供します。例えば、確率的勾配降下法 (`optim.SGD`)、Adam (`optim.Adam`) などが含まれます。`optim` というエイリアスで参照できるようにしています。
+*   `from torchvision import datasets, transforms`:  画像処理に特化したライブラリ `torchvision` から、データセット (`datasets`) とデータ変換 (`transforms`) に関連するモジュールをインポートしています。`datasets` には MNIST のような一般的な画像データセットが含まれており、`transforms` には画像のテンソル化、正規化などの前処理を行うための関数が含まれています。
+*   `from torch.utils.data import DataLoader`:  データセットからミニバッチを作成し、学習時にデータを効率的に供給するためのユーティリティクラス `DataLoader` をインポートしています。
+
+## 2. ハイパーパラメータの設定
+
+```python
+# setting a hyperparameters
+batch_size = 64
+learging_rate = 0.001
+num_epochs = 3
+```
+
+ここでは、ニューラルネットワークの学習プロセスを制御するための重要なパラメータ（ハイパーパラメータ）を設定しています。
+
+*   `batch_size = 64`:  学習時に一度に処理するデータの数（ミニバッチサイズ）を指定します。64 に設定した場合、訓練データセットから 64 個のデータサンプルをまとめてモデルに入力し、それらの平均的な勾配に基づいてモデルのパラメータを更新します。バッチサイズを大きくすると、勾配の計算が安定しやすくなりますが、メモリ使用量が増加します。
+*   `learging_rate = 0.001`:  最適化アルゴリズムにおける学習率を設定します。学習率は、損失関数の勾配に基づいてモデルのパラメータを更新する際のステップサイズを決定します。学習率が大きいと、パラメータの更新幅が大きくなり、学習が早く進む可能性がありますが、最適解を飛び越えてしまうリスクがあります。学習率が小さいと、パラメータの更新幅が小さくなり、学習は安定しますが、収束に時間がかかる場合があります。
+*   `num_epochs = 3`:  訓練データセット全体を何回繰り返して学習するかを指定します。1 エポックとは、訓練データセット全体を一度通して学習することを意味します。エポック数を増やすことで、モデルは訓練データからより多くのパターンを学習できますが、過学習のリスクも高まります。
+
+## 3. データの前処理
+
+```python
+# preproccesing data (grayscale, normalization, etc.)
+transform = transforms.Compose([
+    transforms.ToTensor(),
+    transforms.Normalize((0.1037,), (0.3081,))
+])
+```
+
+このセクションでは、MNIST データセットの画像をニューラルネットワークに入力する前に適切な形式に変換する処理を定義しています。
+
+*   `transforms.Compose([...])`:  複数の変換処理を順番に適用するためのコンテナです。リスト内に記述された変換処理が順番に実行されます。
+*   `transforms.ToTensor()`:  PIL 画像または NumPy 配列を PyTorch のテンソルに変換します。この際、画素値は 0 から 1 の範囲に正規化されます（元の画素値が 0 から 255 の場合、255 で割られます）。これは、ニューラルネットワークが数値データを扱いやすくするためです。
+*   `transforms.Normalize((0.1037,), (0.3081,))`:  テンソル化された画像の画素値を正規化します。具体的には、各チャンネル（MNIST の場合はグレースケールなので 1 チャンネル）の画素値から平均値 (`0.1037`) を引き、標準偏差 (`0.3081`) で割ります。この正規化により、画素値の分布が特定の範囲に収まり、学習が安定しやすくなる効果があります。これらの平均値と標準偏差は、MNIST データセット全体の画素値から計算された値です。
+
+## 4. MNISTデータセットのダウンロードと読み込み
+
+```python
+# download and load the MNIST data
+train_dataset = datasets.MNIST('./data', train=True, download=True, transform=transform)
+test_dataset = datasets.MNIST('./data', train=False, download=True, transform=transform)
+
+train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
+test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False)
+```
+
+ここでは、MNIST データセットをダウンロードし、学習用と評価用に分割して読み込んでいます。
+
+*   `train_dataset = datasets.MNIST('./data', train=True, download=True, transform=transform)`:  `torchvision.datasets.MNIST` クラスを使用して、MNIST データセットの訓練用データを読み込みます。
+    *   `'./data'` はデータセットをダウンロードするディレクトリ、または既にダウンロード済みのデータセットが保存されているディレクトリを指定します。
+    *   `train=True` は訓練用データを読み込むことを指定します。
+    *   `download=True` は、指定されたディレクトリにデータセットが存在しない場合に自動的にダウンロードすることを指定します。
+    *   `transform=transform` は、先ほど定義した前処理 (`transform`) を読み込んだデータに適用することを指定します。
+*   `test_dataset = datasets.MNIST('./data', train=False, download=True, transform=transform)`:  同様に、MNIST データセットのテスト用データを読み込みます。`train=False` を指定することで、評価用のデータが読み込まれます。
+*   `train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)`:  `torch.utils.data.DataLoader` クラスを使用して、訓練データセットからミニバッチを作成します。
+    *   `train_dataset` は、読み込んだ訓練データセットを指定します。
+    *   `batch_size=batch_size` は、ミニバッチのサイズを、先ほど設定した `batch_size` の値（ここでは 64）に設定します。
+    *   `shuffle=True` は、各エポックの開始時にデータセット内のサンプルの順序をシャッフルすることを指定します。これにより、モデルが特定の順序に依存して学習することを防ぎ、汎化性能の向上に貢献します。
+*   `test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False)`:  同様に、テストデータセットからミニバッチを作成します。`shuffle=False` とすることで、評価時にはデータの順序を固定します。
+
+## 5. ニューラルネットワークモデルの定義
+
+```python
+class Net(nn.Module):
+    def __init__(self):
+        super(Net, self).__init__()
+        self.conv1 = nn.Conv2d(1, 32, 3, padding=1)
+        self.conv2 = nn.Conv2d(32, 64, 3, padding=1)
+        self.pool = nn.MaxPool2d(2, 2)
+        self.fc1 = nn.Linear(64 * 7 * 7, 256)
+        self.fc2 = nn.Linear(256, 10)
+
+    def forward(self, x):
+        x = self.pool(torch.relu(self.conv1(x)))
+        x = self.pool(torch.relu(self.conv2(x)))
+        x = x.view(-1, 64 * 7 * 7)
+        x = torch.relu(self.fc1(x))
+        x = self.fc2(x)
+        return x
+```
+
+ここでは、手書き数字認識を行うためのニューラルネットワークモデルのアーキテクチャを定義しています。
+
+*   `class Net(nn.Module):`:  `Net` という名前のクラスを定義し、`torch.nn.Module` を継承しています。`nn.Module` は、PyTorch でニューラルネットワークを構築するための基本的なクラスです。
+*   `def __init__(self):`:  モデルのインスタンスが生成される際に実行される初期化メソッドです。ここで、モデルで使用する各層を定義します。
+    *   `super(Net, self).__init__()`:  親クラス (`nn.Module`) の初期化メソッドを呼び出します。これは必須の記述です。
+    *   `self.conv1 = nn.Conv2d(1, 32, 3, padding=1)`:  最初の畳み込み層を定義します。
+        *   `1` は入力チャンネル数（MNIST はグレースケール画像なので 1 チャンネル）。
+        *   `32` は出力チャンネル数（32 種類の特徴マップを生成）。
+        *   `3` は畳み込みカーネルのサイズ（3x3 のフィルターを使用）。
+        *   `padding=1` は入力の特徴マップの周囲に 1 ピクセルのパディングを追加します。これにより、畳み込み演算後も特徴マップのサイズが維持され、画像の端の情報を失いにくくなります。
+    *   `self.conv2 = nn.Conv2d(32, 64, 3, padding=1)`:  2 番目の畳み込み層を定義します。
+        *   `32` は入力チャンネル数（前の畳み込み層の出力チャンネル数）。
+        *   `64` は出力チャンネル数（64 種類の特徴マップを生成）。
+        *   その他のパラメータは `conv1` と同様です。
+    *   `self.pool = nn.MaxPool2d(2, 2)`:  最大プーリング層を定義します。
+        *   `2` はプーリングウィンドウのサイズ（2x2 の領域）。
+        *   `2` はストライド（プーリングウィンドウを移動させる幅）。この設定では、2x2 の領域から最大の値を取り出し、特徴マップのサイズを縦横それぞれ 1/2 にします。
+    *   `self.fc1 = nn.Linear(64 * 7 * 7, 256)`:  最初の全結合層（線形層）を定義します。
+        *   `64 * 7 * 7` は入力の特徴数です。2 つの畳み込み層とプーリング層を通過した後の特徴マップのサイズは (batch_size, 64, 7, 7) となり、これを 1 次元にflatten すると 64 \* 7 \* 7 個の特徴量になります。
+        *   `256` は出力の特徴数（この層のニューロン数）。
+    *   `self.fc2 = nn.Linear(256, 10)`:  2 番目の全結合層を定義します。
+        *   `256` は入力の特徴数（前の全結合層の出力数）。
+        *   `10` は出力の特徴数です。MNIST は 10 クラス分類問題（0 から 9 の数字を識別）なので、出力は 10 個になります。各出力は、対応する数字である確率を表します。
+*   `def forward(self, x):`:  モデルにデータが入力された際に実行される順伝播処理を定義します。
+    *   `x = self.pool(torch.relu(self.conv1(x)))`:  入力 `x` に最初の畳み込み層 (`self.conv1`) を適用し、その出力に ReLU 活性化関数を適用した後、最大プーリング層 (`self.pool`) を適用します。ReLU は、負の値を 0 に、正の値をそのまま出力する非線形活性化関数です。
+    *   `x = self.pool(torch.relu(self.conv2(x)))`:  同様に、2 番目の畳み込み層と ReLU、最大プーリング層を適用します。
+    *   `x = x.view(-1, 64 * 7 * 7)`:  畳み込み層とプーリング層を通過した特徴マップを、全結合層に入力できるように 2 次元テンソルにreshapeします。`-1` はバッチサイズの次元を自動的に推論することを意味します。
+    *   `x = torch.relu(self.fc1(x))`:  最初の全結合層を適用し、ReLU 活性化関数を適用します。
+    *   `x = self.fc2(x)`:  最後の全結合層を適用します。この層の出力が、各クラスの確率（またはロジット）となります。
+    *   `return x`:  最終的な出力を返します。
+
+## 6. モデルのインスタンス化
+
+```python
+# instantiating the model
+model = Net()
+```
+
+ここでは、先ほど定義した `Net` クラスのインスタンスを作成し、`model` という変数に代入しています。これにより、定義したニューラルネットワークモデルを実際に使用できるようになります。
+
+## 7. 損失関数と最適化アルゴリズムの定義
+
+```python
+# defining the loss function and optimization algorithm
+criterion = nn.CrossEntropyLoss()
+optimizer = optim.Adam(model.parameters(), lr=learging_rate)
+```
+
+ここでは、モデルの学習に使用する損失関数と最適化アルゴリズムを定義しています。
+
+*   `criterion = nn.CrossEntropyLoss()`:  損失関数として交差エントロピー損失関数を選択しています。交差エントロピー損失関数は、多クラス分類問題でよく用いられる損失関数で、モデルの予測確率分布と真のラベルの確率分布との間の差異を測ります。
+*   `optimizer = optim.Adam(model.parameters(), lr=learging_rate)`:  最適化アルゴリズムとして Adam を選択しています。Adam は、勾配降下法を改良した最適化アルゴリズムの一つで、学習率を自動的に調整する機能があります。
+    *   `model.parameters()` は、学習対象となるモデルのパラメータ（重みとバイアス）を返します。
+    *   `lr=learging_rate` は、最適化アルゴリズムの学習率を、先ほど設定した `learging_rate` の値に設定します。
+
+## 8. 訓練
+
+```python
+# training
+for epoch in range(num_epochs):
+    model.train()
+    train_loss = 0
+    correct_train = 0
+    total_train = 0
+    for batch_idx, (data, target) in enumerate(train_loader):
+        optimizer.zero_grad()
+        output = model(data)
+        loss = criterion(output, target)
+        loss.backward()
+        optimizer.step()
+
+        # Printing statistics
+        train_loss += loss.item()
+        _, predicted = output.max(1)
+        total_train += target.size(0)
+        correct_train += predicted.eq(target).sum().item()
+
+        if batch_idx % 200 == 0:
+            print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
+                epoch, batch_idx * len(data), len(train_loader.dataset),
+                100. * batch_idx / len(train_loader), loss.item()
+            ))
+
+    train_accuracy = 100 * correct_train / total_train
+    print(f'Epoch {epoch}: Train Loss: {train_loss / len(train_loader):.4f}, Train Accuracy: {train_accuracy:.2f}%')
+```
+
+ここでは、ニューラルネットワークモデルを訓練データを用いて学習させるプロセスを記述しています。
+
+*   `for epoch in range(num_epochs):`:  指定したエポック数だけ学習を繰り返します。
+*   `model.train()`:  モデルを訓練モードに設定します。訓練モードでは、ドロップアウトやバッチ正規化などの層が学習に適した挙動をします。
+*   `train_loss = 0`, `correct_train = 0`, `total_train = 0`:  各エポックにおける損失と正解数を初期化します。
+*   `for batch_idx, (data, target) in enumerate(train_loader):`:  `train_loader` からミニバッチ単位で訓練データ (`data`) とそのラベル (`target`) を取得し、反復処理を行います。
+*   `optimizer.zero_grad()`:  各ミニバッチの学習前に、オプティマイザに蓄積されている勾配情報をリセットします。
+*   `output = model(data)`:  ミニバッチの入力データ `data` をモデルに入力し、予測結果 `output` を取得します。
+*   `loss = criterion(output, target)`:  予測結果 `output` と正解ラベル `target` を損失関数に入力し、損失値を計算します。
+*   `loss.backward()`:  計算された損失値に基づいて、モデルの各パラメータに対する勾配を計算します（バックプロパゲーション）。
+*   `optimizer.step()`:  計算された勾配に基づいて、モデルのパラメータを更新します。
+*   `(Printing statistics)`:  訓練の進行状況を表示します。
+    *   `train_loss += loss.item()`:  現在のバッチの損失値を累積します。`.item()` を使用することで、テンソルから Python の数値を取得できます。
+    *   `_, predicted = output.max(1)`:  予測結果 `output` の各行（各サンプルの予測）の中で、最も確率の高いクラスのインデックスを取得します。`_` は最大値自体を無視するために使用します。
+    *   `total_train += target.size(0)`:  処理した訓練データの総数を累積します。
+    *   `correct_train += predicted.eq(target).sum().item()`:  予測が正解だった数を累積します。`predicted.eq(target)` は、予測と正解ラベルが一致する箇所に `True`、それ以外に `False` を持つブール値テンソルを生成し、`.sum()` で `True` の数を合計し、`.item()` で Python の数値に変換します。
+    *   `if batch_idx % 200 == 0:`:  200 バッチごとに訓練の状況を表示します。
+*   `train_accuracy = 100 * correct_train / total_train`:  エポック終了時の訓練データの正解率を計算します。
+*   `print(f'Epoch {epoch}: Train Loss: {train_loss / len(train_loader):.4f}, Train Accuracy: {train_accuracy:.2f}%')`:  エポックごとの平均損失と訓練データの正解率を表示します。
+
+## 9. 評価
+
+```python
+# evaluation
+model.eval()
+test_loss = 0
+correct_test = 0
+total_test = 0
+with torch.no_grad():
+    for data, target in test_loader:
+        output = model(data)
+        test_loss += criterion(output, target).item()
+        _, predicted = output.max(1)
+        total_test += target.size(0)
+        correct_test += predicted.eq(target).sum().item()
+
+test_accuracy = 100. * correct_test / total_test
+print(f'Test Loss: {test_loss / len(test_loader):.4f}, Test Accuracy: {test_accuracy:.2f}%')
+```
+
+ここでは、訓練済みのモデルの汎化性能を評価するために、テストデータセットに対する性能を測定しています。
+
+*   `model.eval()`:  モデルを評価モードに設定します。評価モードでは、訓練時とは異なる挙動をする層（ドロップアウト層など）が評価に適した挙動をします。例えば、ドロップアウト層は無効になります。
+*   `test_loss = 0`, `correct_test = 0`, `total_test = 0`:  テストデータに対する損失と正解数を初期化します。
+*   **`with torch.no_grad():`**:  このブロック内の処理では、勾配計算を行わないことを指定します。評価時にはモデルのパラメータを更新する必要がないため、勾配計算を無効にすることで、メモリ使用量を削減し、処理を高速化できます。
+*   **`for data, target in test_loader:`**:  `test_loader` からミニバッチ単位でテストデータとそのラベルを取得し、反復処理を行います。
+*   **`output = model(data)`**:  テストデータをモデルに入力し、予測結果を取得します。
+*   **`test_loss += criterion(output, target).item()`**:  予測結果と正解ラベルから損失値を計算し、累積します。
+*   **`_, predicted = output.max(1)`**:  予測結果から最も確率の高いクラスを予測ラベルとして取得します。
+*   **`total_test += target.size(0)`**:  処理したテストデータの総数を累積します。
+*   **`correct_test += predicted.eq(target).sum().item()`**:  予測が正解だった数を累積します。
+*   **`test_accuracy = 100. * correct_test / total_test`**:  テストデータに対する正解率を計算します。
+*   **`print(f'Test Loss: {test_loss / len(test_loader):.4f}, Test Accuracy: {test_accuracy:.2f}%')`**:  テストデータに対する平均損失と正解率を表示します。
+
+## 10. 正解率の確認:
+
+```python
+# Checking accuracy
+if train_accuracy >= 90.0 and test_accuracy >= 85.0:
+    print("The target accuracy rate was achieved.")
+else:
+    print("The target accuracy rate was not achieved.")
+```
+
+ここでは、訓練データとテストデータで達成された正解率を、事前に設定された目標値と比較し、結果を出力しています。訓練データの正解率が 90% 以上、かつテストデータの正解率が 85% 以上であれば、目標精度を達成したと判断します。
+
+### [参考] log
+
+```bash
+Train Epoch: 0 [0/60000 (0%)]   Loss: 2.292500
+Train Epoch: 0 [12800/60000 (21%)]      Loss: 0.107222
+Train Epoch: 0 [25600/60000 (43%)]      Loss: 0.023011
+Train Epoch: 0 [38400/60000 (64%)]      Loss: 0.062600
+Train Epoch: 0 [51200/60000 (85%)]      Loss: 0.098606
+Epoch 0: Train Loss: 0.1213, Train Accuracy: 96.30%
+Train Epoch: 1 [0/60000 (0%)]   Loss: 0.030439
+Train Epoch: 1 [12800/60000 (21%)]      Loss: 0.016119
+Train Epoch: 1 [25600/60000 (43%)]      Loss: 0.018514
+Train Epoch: 1 [38400/60000 (64%)]      Loss: 0.066887
+Train Epoch: 1 [51200/60000 (85%)]      Loss: 0.069259
+Epoch 1: Train Loss: 0.0384, Train Accuracy: 98.82%
+Train Epoch: 2 [0/60000 (0%)]   Loss: 0.003613
+Train Epoch: 2 [12800/60000 (21%)]      Loss: 0.020767
+Train Epoch: 2 [25600/60000 (43%)]      Loss: 0.014143
+Train Epoch: 2 [38400/60000 (64%)]      Loss: 0.027359
+Train Epoch: 2 [51200/60000 (85%)]      Loss: 0.037601
+Epoch 2: Train Loss: 0.0250, Train Accuracy: 99.19%
+Test Loss: 0.0269, Test Accuracy: 99.06%
+The target accuracy rate was achieved.
+```
+>>>>>>> master
