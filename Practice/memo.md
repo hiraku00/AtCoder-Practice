@@ -1102,8 +1102,6 @@ if __name__ == '__main__':
 
 # 25
 
-行しました。以下に修正版のコード解説を示します。
-
 ## 1. ライブラリのインポート
 
 ```python
@@ -1377,3 +1375,162 @@ Test Loss: 0.0269, Test Accuracy: 99.06%
 The target accuracy rate was achieved.
 ```
 >>>>>>> master
+
+<br>
+<br>
+
+---
+
+# 26
+
+## このプログラムは何をするもの？
+
+このプログラムは、指定されたテキストファイルから文章を読み込み、その文章の中で特によく使われている名詞（物の名前など）を上位10個表示するものです。例えば、あるニュース記事やブログ記事のテキストファイルを与えると、その記事の中で頻繁に使われているキーワードとなる名詞を知ることができます。
+
+プログラムは以下の手順で処理を行います。
+
+1. **テキストファイルの読み込み:** プログラムが解析対象とする文章が書かれたテキストファイルを読み込みます。
+2. **形態素解析による名詞抽出:** 読み込んだ文章をMeCabというツールを使って細かく分解し、その中から名詞だけを取り出します。
+3. **名詞の出現回数の集計:** 取り出した名詞がそれぞれ何回文章中に出てきたかを数えます。
+4. **出現頻度の高い順に並び替え:** 名詞を出現回数が多い順に並べ替えます。
+5. **上位10個の名詞の表示:** 並び替えた結果の上位10個の名詞とその出現回数を表示します。
+
+## プログラムを実行する前の準備
+
+このプログラムを動かすには、以下の準備が必要です。
+
+1. **MeCabのインストール:** 日本語の文章を解析するためのツール「MeCab」があなたのパソコンにインストールされている必要があります。もしインストールされていない場合は、インストール作業が必要です。（インストール方法については、MeCabの公式サイトなどを参照してください。）
+2. **テキストファイルの準備:** 解析したい文章を記述したテキストファイルを用意します。このプログラムでは、デフォルトで「./data/sample.txt」という名前のファイルを探します。例えば、「./data/sample.txt」ファイルに以下のような文章が書かれているとします。
+
+   ```
+   今日は天気が良いので、公園で遊びます。子供たちが楽しそうに遊んでいます。公園には花も咲いていて綺麗です。
+   ```
+
+## プログラムのコード解説
+
+それでは、プログラムのコードを順番に見ていきましょう。
+
+```python
+import MeCab
+```
+この行は、プログラムの中でMeCabという機能を使うために必要な準備をしています。「import」は、外部の機能を取り込むための命令です。
+
+```python
+def extract_nouns(text, mecabrc_path):
+    tagger = MeCab.Tagger(f"-r {mecabrc_path}")
+    node = tagger.parseToNode(text)
+    nouns = []
+    while node:
+        if node.feature.split(",")[0] == "名詞":
+            nouns.append(node.surface)
+        node = node.next
+    return nouns
+```
+この部分は、文章から名詞を抽出する処理をまとめたものです。
+
+* **`def extract_nouns(text, mecabrc_path):`**:  これは「extract_nouns」という名前の機能（関数）を定義しています。この関数は、「text」（解析する文章）と「mecabrc_path」（MeCabの設定ファイルの場所）の2つの情報を受け取ります。
+* **`tagger = MeCab.Tagger(f"-r {mecabrc_path}")`**: MeCabを使って文章を解析するための準備をしています。`mecabrc_path`はMeCabの動作設定を指定するファイルです。
+* **`node = tagger.parseToNode(text)`**: 渡された文章 (`text`) をMeCabに解析させ、その結果を`node`という変数に格納します。MeCabは文章を単語ごとに区切り、それぞれの単語の品詞などの情報を付与します。
+   例えば、「今日は天気」という部分を解析すると、以下のような情報が得られます。
+
+   ```
+   今日	名詞,副詞可能,*,*,*,*,今日,キョウ,キョー
+   は	助詞,係助詞,*,*,*,*,は,ハ,ワ
+   天気	名詞,一般,*,*,*,*,天気,テンキ,テンキ
+   ```
+   各行が単語に対応し、単語の表記、品詞などの情報が含まれます。
+* **`nouns = []`**: 名詞を格納するための空のリストを作成します。
+* **`while node:`**:  MeCabによって解析された単語の情報を順番に処理するための繰り返し処理です。
+* **`if node.feature.split(",")[0] == "名詞":`**: 現在処理している単語が名詞かどうかを判定しています。`node.feature`には品詞などの情報がカンマ区切りで含まれており、最初の要素が品詞名です。
+* **`nouns.append(node.surface)`**: もし名詞であれば、その単語の表面形（実際の表記）を`nouns`リストに追加します。例えば、「今日」や「天気」が追加されます。
+* **`node = node.next`**: 次の単語の情報に進みます。
+* **`return nouns`**:  抽出された名詞のリストを関数の結果として返します。
+
+```python
+def get_noun_frequencies(nouns):
+    dict_nouns = {}
+    for noun in nouns:
+        if noun in dict_nouns:
+            dict_nouns[noun] += 1
+        else:
+            dict_nouns[noun] = 1
+    return sorted(dict_nouns.items(), key=lambda x: x[1], reverse=True)
+```
+この部分は、抽出された名詞の出現回数を数える処理です。
+
+* **`def get_noun_frequencies(nouns):`**: 「get_noun_frequencies」という名前の関数を定義しています。この関数は、名詞のリスト (`nouns`) を受け取ります。
+* **`dict_nouns = {}`**: 名詞とその出現回数を記録するための空の辞書を作成します。辞書はキーと値のペアを格納するデータ構造です。ここでは、名詞をキー、出現回数を値として使います。
+* **`for noun in nouns:`**:  名詞のリストの中身を一つずつ処理する繰り返し処理です。
+* **`if noun in dict_nouns:`**: 現在処理している名詞が、すでに辞書にキーとして存在するかどうかを確認します。
+* **`dict_nouns[noun] += 1`**: もし辞書に存在すれば、その名詞の出現回数を1増やします。
+* **`else:`**: もし辞書に存在しなければ、
+* **`dict_nouns[noun] = 1`**: その名詞をキーとして辞書に登録し、出現回数を1とします。
+* **`return sorted(dict_nouns.items(), key=lambda x: x[1], reverse=True)`**: 辞書の内容を、出現回数が多い順に並び替えたリストとして返します。`sorted()`関数はリストの要素を並び替える関数で、`key=lambda x: x[1]`は並び替えの基準を各要素の2番目の値（出現回数）とすることを指定し、`reverse=True`は降順で並び替えることを指定します。
+
+```python
+def display_top_n(sorted_nouns, n):
+    for noun, count in sorted_nouns[:n]:
+        print(f"{noun}: {count}")
+```
+この部分は、出現回数の多い名詞を上位から指定された数だけ表示する処理です。
+
+* **`def display_top_n(sorted_nouns, n):`**: 「display_top_n」という名前の関数を定義しています。この関数は、並び替えられた名詞のリスト (`sorted_nouns`) と、表示する上位の数 (`n`) を受け取ります。
+* **`for noun, count in sorted_nouns[:n]:`**: 並び替えられたリストの先頭から`n`個の要素を取り出し、順番に処理します。
+* **`print(f"{noun}: {count}")`**: 取り出した名詞とその出現回数を表示します。例えば、「公園: 2」のように表示されます。
+
+```python
+def main():
+    mecabrc_path = "/etc/mecabrc"
+    file_path = "./data/sample.txt"
+    try:
+        with open(file_path, "r", encoding="utf-8") as f:
+            text = f.read()
+    except FileNotFoundError:
+        print(f"ファイルが見つかりません: {file_path}")
+        exit()
+
+    nouns = extract_nouns(text, mecabrc_path)
+    if nouns:
+        noun_frequencies = get_noun_frequencies(nouns)
+        display_top_n(noun_frequencies, 10)
+```
+この部分は、プログラム全体の実行順序を定義しています。
+
+* **`def main():`**: 「main」という名前の関数を定義しています。これがプログラムの主な処理の流れを記述する場所です。
+* **`mecabrc_path = "/etc/mecabrc"`**: MeCabの設定ファイルへのパスを`mecabrc_path`変数に設定します。
+* **`file_path = "./data/sample.txt"`**: 解析対象のテキストファイルへのパスを`file_path`変数に設定します。
+* **`try:` ~ `except FileNotFoundError:`**:  ファイルを読み込む際にエラーが発生した場合の処理を記述しています。`try`ブロック内の処理が失敗した場合、`except`ブロックの処理が実行されます。ここでは、指定されたファイルが見つからない場合にエラーメッセージを表示してプログラムを終了します。
+* **`with open(file_path, "r", encoding="utf-8") as f:`**:  指定されたテキストファイルを読み込みモード（"r"）で開き、ファイルオブジェクトを`f`という名前で扱えるようにします。`encoding="utf-8"`は、ファイルがUTF-8形式でエンコードされていることを指定します。
+* **`text = f.read()`**: 開いたファイルの内容をすべて読み込み、`text`変数に格納します。
+* **`nouns = extract_nouns(text, mecabrc_path)`**:  `extract_nouns`関数を呼び出し、読み込んだテキストから名詞を抽出します。
+* **`if nouns:`**: 抽出された名詞が存在する場合に、
+* **`noun_frequencies = get_noun_frequencies(nouns)`**:  `get_noun_frequencies`関数を呼び出し、名詞の出現回数を集計します。
+* **`display_top_n(noun_frequencies, 10)`**:  `display_top_n`関数を呼び出し、出現回数の多い名詞上位10個を表示します。
+
+```python
+if __name__ == "__main__":
+    main()
+```
+この部分は、プログラムが直接実行された場合に`main()`関数を呼び出すための記述です。
+
+## プログラムの実行
+
+このプログラムを実行するには、まずプログラムのコードを「.py」という拡張子のファイルに保存します（例：`noun_analyzer.py`）。次に、ターミナルやコマンドプロンプトを開き、プログラムを保存したディレクトリに移動して、以下のコマンドを実行します。
+
+```bash
+python noun_analyzer.py
+```
+
+「./data/sample.txt」ファイルに前述の例のような文章が書かれていれば、プログラムは以下のような出力を表示します。
+
+```
+公園: 2
+今日: 1
+天気: 1
+子供: 1
+花: 1
+```
+
+これは、文章中で「公園」という名詞が2回、「今日」「天気」「子供」「花」という名詞がそれぞれ1回出現したことを示しています。
+
+この解説で、プログラムの各部分の役割と処理の流れを理解していただければ幸いです。

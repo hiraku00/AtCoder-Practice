@@ -9,7 +9,7 @@ RUN pip install mecab-python3
 # Pythonでよく使うライブラリをインストール
 RUN pip install numpy scikit-learn matplotlib pandas
 # 追加
-RUN pip install requests bs4 pillow
+RUN pip install requests bs4 pillow Mecab
 # PyTorchのインストール
 RUN pip install torch torchvision torchaudio
 
