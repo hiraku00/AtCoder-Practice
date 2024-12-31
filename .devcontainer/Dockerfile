@@ -12,6 +12,8 @@ RUN pip install numpy scikit-learn matplotlib pandas
 RUN pip install requests bs4 pillow Mecab
 # PyTorchのインストール
 RUN pip install torch torchvision torchaudio
+# pygame
+RUN pip install pygame
 
 # # .devcontainer/requirements.txt をコピーしてインストール
 # COPY .devcontainer/requirements.txt /tmp/requirements.txt
