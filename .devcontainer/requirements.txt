@@ -21,3 +21,11 @@ six
 threadpoolctl
 tzdata
 wheel
+# 250101
+sqlalchemy
+Flask
+Flask-SQLAlchemy
+Flask-Migrate
+Flask-Login
+Werkzeug
+email_validator
