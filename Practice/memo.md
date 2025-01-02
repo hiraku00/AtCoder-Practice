@@ -1647,3 +1647,271 @@ print(f'Accuracy rate of test data: {test_accuracy:.4f}')
 *   `print(f'{feature_name}: {importance:.2f}')`: 各特徴量の名前と重要度をフォーマットして表示します。
 
 このコードを実行することで、Irisデータセットを用いたアヤメの品種分類モデルの構築と評価が行われ、訓練データとテストデータにおける正解率が確認できます。
+
+
+<br>
+<br>
+
+---
+
+# 30
+
+このコードは、ワインの成分データを使って、そのワインがどの種類（クラス）に属するかを予測するプログラムです。具体的には、以下の手順で処理を進めています。
+
+## 1. ライブラリのインポート
+
+```python
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+from sklearn.model_selection import train_test_split, cross_val_score, KFold
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import accuracy_score, confusion_matrix
+from sklearn.preprocessing import StandardScaler
+```
+
+この部分では、プログラムで使う便利な道具箱（ライブラリ）を準備しています。それぞれのライブラリは、特定の作業を効率的に行うための機能を提供しています。
+
+*   **`import pandas as pd`**:  `pandas` は、表形式のデータを扱うのに非常に強力なライブラリです。データの読み込み、整理、加工など、データ分析の基礎となる作業で利用します。`as pd` とすることで、以降 `pandas` を `pd` という短い名前で使えるようにしています。
+
+    *   **例:**  ワインのデータを表として読み込んだり、表の一部の列を選んだりする際に使います。
+
+*   **`import matplotlib.pyplot as plt`**: `matplotlib` は、グラフを描画するための基本的なライブラリです。データの可視化に役立ちます。`as plt` とすることで、以降 `matplotlib.pyplot` を `plt` という短い名前で使えるようにしています。
+
+    *   **例:**  混同行列や特徴量の重要度を棒グラフで表示する際に使います。
+
+*   **`import seaborn as sns`**: `seaborn` は、`matplotlib` をベースにした、より洗練された統計グラフを描画するためのライブラリです。ヒートマップなどの複雑なグラフを簡単に作成できます。`as sns` とすることで、以降 `seaborn` を `sns` という短い名前で使えるようにしています。
+
+    *   **例:**  混同行列を色分けされたヒートマップとして見やすく表示する際に使います。
+
+*   **`from sklearn.model_selection import train_test_split, cross_val_score, KFold`**: `sklearn` (scikit-learn) は、機械学習のための様々な機能を提供するライブラリです。`model_selection` モジュールには、データを分割したり、モデルの性能を評価したりするためのツールが含まれています。
+
+    *   **`train_test_split`**:  データを訓練用とテスト用に分割する際に使います。
+    *   **`cross_val_score`**: 交差検証という手法でモデルの性能を評価する際に使います。
+    *   **`KFold`**: 交差検証を行う際に、データをどのように分割するかを指定するために使います。
+
+*   **`from sklearn.ensemble import RandomForestClassifier`**: `sklearn.ensemble` モジュールには、複数の決定木を組み合わせた強力な分類アルゴリズムであるランダムフォレストが含まれています。
+
+    *   **例:**  ワインの種類を予測するモデルとしてランダムフォレストを使います。
+
+*   **`from sklearn.metrics import accuracy_score, confusion_matrix`**: `sklearn.metrics` モジュールには、モデルの性能を評価するための指標が用意されています。
+
+    *   **`accuracy_score`**: モデルの予測がどれくらい正確か（正解率）を計算する際に使います。
+    *   **`confusion_matrix`**: モデルの予測結果が、実際の結果とどのように異なっているかを示す表（混同行列）を作成する際に使います。
+
+*   **`from sklearn.preprocessing import StandardScaler`**: `sklearn.preprocessing` モジュールには、データの前処理を行うためのツールが含まれています。今回は使用していませんが、例えば、特徴量の値を一定の範囲に収める（標準化）などの処理に使われます。
+
+## 2. データセットの読み込み
+
+```python
+# Wine recognition datasetの読み込み
+# https://scikit-learn.org/stable/datasets/toy_dataset.html#wine-recognition-dataset
+url = "https://archive.ics.uci.edu/ml/machine-learning-databases/wine/wine.data"
+df = pd.read_csv(url, header=None)
+df.columns = ['class', 'Alcohol', 'Malic acid', 'Ash', 'Alcalinity of ash', 'Magnesium', 'Total phenols', 'Flavanoids', 'Nonflavanoid phenols', 'Proanthocyanins', 'Color intensity', 'Hue', 'OD280/OD315 of diluted wines', 'Proline']
+```
+
+ここでは、インターネット上にあるワインのデータセットを読み込んでいます。
+
+*   **`url = "https://archive.ics.uci.edu/ml/machine-learning-databases/wine/wine.data"`**:  ワインのデータが置いてある場所（URL）を変数 `url` に格納しています。
+*   **`df = pd.read_csv(url, header=None)`**: `pandas` の `read_csv` 関数を使って、指定されたURLからデータを読み込み、`df` という名前の表形式のデータ（DataFrame）として保存しています。`header=None` は、データに列名が含まれていないことを示しています。
+
+    *   **例:**  この行を実行すると、ワインの成分に関する数値データが、行と列からなる表として `df` に格納されます。
+*   **`df.columns = ['class', 'Alcohol', 'Malic acid', ... , 'Proline']`**:  読み込んだデータに列名を付けています。元のデータには列名がなかったので、それぞれの列が何を表しているかを明確にするために、リスト形式で列名を指定しています。
+
+    *   **例:**  `df` に格納されたデータの最初の列はワインの種類を表す `class`、2番目の列はアルコール度数を表す `Alcohol`、といった具合に名前が付けられます。
+
+## 3. データの確認
+
+```python
+# データの先頭5行を表示して確認
+print(df.head())
+```
+
+読み込んだデータが正しく読み込まれているかを確認するために、`df.head()` を使ってデータの最初の5行を表示しています。これにより、データの形式や内容をざっと把握できます。
+
+*   **例:**  実行すると、`df` に格納されたデータの最初の5行が画面に表示されます。各行が個々のワインのデータに対応し、各列がワインの成分の値や種類を表していることが確認できます。
+
+## 4. 特徴量と目的変数の分離
+
+```python
+# 特徴量と目的変数の分離
+X = df.drop('class', axis=1)
+y = df['class']
+```
+
+機械学習では、予測に使いたい情報（特徴量）と、予測したい対象（目的変数）を分けて扱う必要があります。
+
+*   **`X = df.drop('class', axis=1)`**:  `df` から `class` という列を削除し、残りの列を特徴量として `X` に格納しています。`axis=1` は列方向の操作を示す指定です。
+
+    *   **例:**  `X` には、アルコール度数、リンゴ酸の量など、ワインの種類を予測するために使う13個の成分データが格納されます。
+*   **`y = df['class']`**:  `df` から `class` という列だけを抽出し、目的変数として `y` に格納しています。これが予測したいワインの種類です。
+
+    *   **例:**  `y` には、各ワインがどの種類（1, 2, または 3）に属するかの情報が格納されます。
+
+## 5. 分類モデルの選択
+
+```python
+# 分類モデルの選択 (例: ランダムフォレスト)
+model = RandomForestClassifier(random_state=42)
+```
+
+ここでは、ワインの種類を予測するために使う機械学習のアルゴリズム（モデル）を選択しています。今回は、`RandomForestClassifier` という、比較的精度が高く、扱いやすいアルゴリズムを選んでいます。
+
+*   **`model = RandomForestClassifier(random_state=42)`**:  `RandomForestClassifier` モデルのインスタンスを作成し、`model` という変数に格納しています。`random_state=42` は、結果の再現性を確保するために乱数の生成を固定する設定です。
+
+    *   **例:**  `model` は、これからワインの成分データに基づいて種類を予測するための「予測器」のようなものになります。
+
+## 6. 交差検証の実行
+
+```python
+# 交差検証の実行 (KFold)
+kf = KFold(n_splits=5, shuffle=True, random_state=42)  # 5分割交差検証
+cv_scores = cross_val_score(model, X, y, cv=kf, scoring='accuracy')
+```
+
+交差検証は、モデルの性能をより正確に評価するための手法です。データをいくつかのグループに分割し、それぞれを評価に使用することで、偶然による偏りを減らすことができます。
+
+*   **`kf = KFold(n_splits=5, shuffle=True, random_state=42)`**:  `KFold` を使って、データを5つのグループに分割する設定を作成しています。`shuffle=True` はデータをシャッフルしてから分割することを意味し、`random_state=42` はシャッフルのランダム性を固定します。
+
+    *   **例:**  178個のワインデータを、ほぼ均等な5つのグループに分けます。
+*   **`cv_scores = cross_val_score(model, X, y, cv=kf, scoring='accuracy')`**:  作成したモデル (`model`) とデータ (`X`, `y`) を使い、`kf` で設定した分割方法で交差検証を実行しています。`scoring='accuracy'` は、モデルの性能を正解率で評価することを指定しています。`cross_val_score` は、各分割での評価結果（正解率）をリストとして返します。
+
+    *   **例:**  5つのグループを使って、5回モデルの訓練と評価を行います。例えば、1回目の評価では最初のグループをテストデータ、残りの4つのグループを訓練データとして使用します。`cv_scores` には、それぞれの評価での正解率が格納されます。
+
+## 7. 交差検証の結果表示
+
+```python
+# 交差検証の結果表示
+print("各分割の正解率:", cv_scores)
+print("平均正解率:", cv_scores.mean())
+```
+
+交差検証で得られた結果を表示しています。
+
+*   **`print("各分割の正解率:", cv_scores)`**:  各分割ごとの正解率をリスト形式で表示します。
+*   **`print("平均正解率:", cv_scores.mean())`**:  すべての分割の正解率の平均値を計算し、表示します。この平均値が、モデルの汎化性能（未知のデータに対する予測能力）のおおよその目安となります。
+
+    *   **例:**  「各分割の正解率: [0.972..., 1.        , 0.944..., 0.971..., 1.        ]」のように表示され、それぞれの数値が各分割での正解率を表します。「平均正解率: 0.977...」のように表示され、モデルのおおよその予測精度がわかります。
+
+## 8. データセットの分割（訓練データとテストデータ）
+
+```python
+# オプション: データセットを訓練データとテストデータに分割して最終評価
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+```
+
+モデルの最終的な性能を評価するために、データを訓練用とテスト用に分割します。訓練データでモデルを学習させ、テストデータで学習したモデルの性能を評価します。
+
+*   **`X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)`**:  `train_test_split` 関数を使って、特徴量 (`X`) と目的変数 (`y`) を、訓練用とテスト用に分割しています。
+    *   `test_size=0.2` は、データ全体の20%をテストデータとして使用することを指定しています。残りの80%が訓練データになります。
+    *   `random_state=42` は、分割の際のランダム性を固定するための設定です。これにより、何度実行しても同じデータ分割が行われます。
+
+    *   **例:**  178個のワインデータのうち、約142個が訓練データ、約36個がテストデータとして分割されます。`X_train` と `y_train` には訓練用の特徴量と目的変数が、`X_test` と `y_test` にはテスト用の特徴量と目的変数が格納されます。
+
+## 9. モデルの学習
+
+```python
+# モデルの学習
+model.fit(X_train, y_train)
+```
+
+分割した訓練データを使って、選択したモデル (`RandomForestClassifier`) にワインの成分と種類の関係を学習させます。
+
+*   **`model.fit(X_train, y_train)`**:  `fit` メソッドを使って、訓練用の特徴量 (`X_train`) と対応する正解ラベル (`y_train`) をモデルに与え、学習を実行します。
+
+    *   **例:**  モデルは、訓練データに含まれる様々なワインの成分と、それらがどの種類に分類されるかのパターンを学習します。
+
+## 10. テストデータでの予測
+
+```python
+# テストデータでの予測
+y_pred = model.predict(X_test)
+```
+
+学習済みのモデルを使って、テストデータに含まれるワインの種類を予測します。
+
+*   **`y_pred = model.predict(X_test)`**:  `predict` メソッドにテスト用の特徴量 (`X_test`) を与えることで、モデルは各ワインがどの種類に属するかを予測し、その結果を `y_pred` に格納します。
+
+    *   **例:**  モデルは、まだ見たことのないテストデータのワインの成分情報に基づいて、そのワインの種類を予測します。`y_pred` には、モデルが予測した種類（1, 2, または 3）が格納されます。
+
+## 11. テストデータの正解率
+
+```python
+# テストデータの正解率
+test_accuracy = accuracy_score(y_test, y_pred)
+print("テストデータの正解率:", test_accuracy)
+```
+
+予測結果がどれくらい正確だったかを評価します。
+
+*   **`test_accuracy = accuracy_score(y_test, y_pred)`**:  `accuracy_score` 関数を使って、テストデータの実際のラベル (`y_test`) とモデルの予測結果 (`y_pred`) を比較し、正解率を計算します。
+*   **`print("テストデータの正解率:", test_accuracy)`**:  計算された正解率を表示します。
+
+    *   **例:**  「テストデータの正解率: 0.972...」のように表示され、モデルがテストデータ中のワインの種類を約97%の精度で正しく予測できたことを示します。
+
+## 12. 混同行列の表示
+
+```python
+# 混同行列の表示
+cm = confusion_matrix(y_test, y_pred)
+plt.figure(figsize=(8, 6))
+sns.heatmap(cm, annot=True, fmt='d', cmap='Blues',
+            xticklabels=df['class'].unique(),
+            yticklabels=df['class'].unique())
+plt.xlabel('Predicted Label')
+plt.ylabel('True Label')
+plt.title('Confusion Matrix')
+plt.show()
+```
+
+混同行列は、モデルの予測結果の詳細を示す表です。どの種類のワインが、どの種類と誤って予測されたのかを確認できます。
+
+*   **`cm = confusion_matrix(y_test, y_pred)`**:  `confusion_matrix` 関数を使って、テストデータの実際のラベル (`y_test`) とモデルの予測結果 (`y_pred`) から混同行列を作成し、`cm` に格納します。
+*   **`plt.figure(figsize=(8, 6))`**:  グラフのサイズを指定します。
+*   **`sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', xticklabels=df['class'].unique(), yticklabels=df['class'].unique())`**:  `seaborn` の `heatmap` 関数を使って、混同行列をヒートマップとして表示します。
+    *   `annot=True`: 各セルに数値を表示します。
+    *   `fmt='d'`: 数値を整数形式で表示します。
+    *   `cmap='Blues'`:  使用する色を指定します。
+    *   `xticklabels` と `yticklabels`:  X軸とY軸のラベルをワインの種類（クラス）にします。
+*   **`plt.xlabel('Predicted Label')`**:  X軸のラベルを設定します。
+*   **`plt.ylabel('True Label')`**:  Y軸のラベルを設定します。
+*   **`plt.title('Confusion Matrix')`**:  グラフのタイトルを設定します。
+*   **`plt.show()`**:  グラフを表示します。
+
+    *   **例:**  ヒートマップが表示され、例えば、実際の種類が「1」のワインのうち、いくつが正しく「1」と予測され、いくつが誤って「2」や「3」と予測されたかがわかります。
+
+## 13. 特徴量の重要度
+
+```python
+# 特徴量の重要度
+feature_importances = model.feature_importances_
+feature_names = X.columns
+indices = sorted(range(len(feature_importances)), key=lambda k: feature_importances[k], reverse=True)
+
+plt.figure(figsize=(10, 6))
+plt.bar(range(len(feature_importances)), feature_importances[indices], align='center')
+plt.xticks(range(len(feature_importances)), [feature_names[i] for i in indices], rotation=45, ha='right')
+plt.xlabel('Feature')
+plt.ylabel('Importance')
+plt.title('Feature Importance')
+plt.tight_layout()
+plt.show()
+```
+
+ランダムフォレストのようなモデルでは、学習の過程で各特徴量が予測にどれくらい貢献したかを評価する「特徴量の重要度」という指標が得られます。この部分では、どの成分がワインの種類を予測する上で重要だったかを可視化しています。
+
+*   **`feature_importances = model.feature_importances_`**:  学習済みモデルから特徴量の重要度を取得し、`feature_importances` に格納します。
+*   **`feature_names = X.columns`**:  特徴量の名前（列名）を `feature_names` に格納します。
+*   **`indices = sorted(range(len(feature_importances)), key=lambda k: feature_importances[k], reverse=True)`**:  特徴量の重要度が高い順に、特徴量のインデックスをソートしています。
+*   **`plt.figure(figsize=(10, 6))`**:  グラフのサイズを指定します。
+*   **`plt.bar(range(len(feature_importances)), feature_importances[indices], align='center')`**:  棒グラフを作成します。X軸は特徴量の数、Y軸は重要度を表します。
+*   **`plt.xticks(range(len(feature_importances)), [feature_names[i] for i in indices], rotation=45, ha='right')`**:  X軸のラベルを特徴量の名前に設定し、見やすいように回転させています。
+*   **`plt.xlabel('Feature')`**:  X軸のラベルを設定します。
+*   **`plt.ylabel('Importance')`**:  Y軸のラベルを設定します。
+*   **`plt.title('Feature Importance')`**:  グラフのタイトルを設定します。
+*   **`plt.tight_layout()`**:  グラフの要素が重ならないようにレイアウトを調整します。
+*   **`plt.show()`**:  グラフを表示します。
+
+    *   **例:**  棒グラフが表示され、例えば「Flavanoids」という成分が最も重要度が高く、次いで「Proline」が高いといったように、どの成分がワインの種類を予測する上で重要だったかが一目でわかります。
+

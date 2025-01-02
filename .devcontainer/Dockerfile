@@ -15,7 +15,7 @@ RUN pip install torch torchvision torchaudio
 # pygame
 RUN pip install pygame
 # flask, sqlalchemy
-RUN pip install sqlalchemy Flask Flask-SQLAlchemy Flask-Migrate Flask-Login Werkzeug email_validator 
+RUN pip install sqlalchemy Flask Flask-SQLAlchemy Flask-Migrate Flask-Login Werkzeug email_validator
 
 # # .devcontainer/requirements.txt をコピーしてインストール
 # COPY .devcontainer/requirements.txt /tmp/requirements.txt
@@ -32,4 +32,3 @@ RUN pip install sqlalchemy Flask Flask-SQLAlchemy Flask-Migrate Flask-Login Werk
 
 # # Flask アプリケーションの実行
 # CMD ["python", "Practice/22/app.py"]
-# CMD ["python", "Practice/29/run.py"]
