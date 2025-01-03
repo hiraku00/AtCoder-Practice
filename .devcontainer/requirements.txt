@@ -29,3 +29,6 @@ Flask-Migrate
 Flask-Login
 Werkzeug
 email_validator
+# 250103 (31.py)
+SpeechRecognition
+PyAudio
