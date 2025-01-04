@@ -4,7 +4,7 @@ FROM python:3.11
 RUN apt-get update && \
     apt-get install -y mecab libmecab-dev mecab-ipadic-utf8
 # PyAudio関連
-RUN apt-get install portaudio19-dev
+RUN apt-get install -y portaudio19-dev
 
 # mecab-python3のインストール
 RUN pip install mecab-python3
@@ -20,6 +20,8 @@ RUN pip install pygame
 RUN pip install sqlalchemy Flask Flask-SQLAlchemy Flask-Migrate Flask-Login Werkzeug email_validator
 # SpeechRecognition, PyAudio
 RUN pip install SpeechRecognition PyAudio
+# statsmodels
+RUN pip install statsmodels
 
 # # .devcontainer/requirements.txt をコピーしてインストール
 # COPY .devcontainer/requirements.txt /tmp/requirements.txt

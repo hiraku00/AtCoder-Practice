@@ -32,3 +32,5 @@ email_validator
 # 250103 (31.py)
 SpeechRecognition
 PyAudio
+# 250104 (32.py)
+statsmodels
