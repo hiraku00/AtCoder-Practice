@@ -2269,3 +2269,416 @@ if __name__ == '__main__':
     * **例:** 最初のループでは、`"Estimated value of pi for 100 trials is 3.12"` のように表示されます。次のループでは、`"Estimated value of pi for 1000 trials is 3.148"` のように、試行回数とそれに対応する推定値が表示されます。
 
 このプログラムを実行すると、様々な試行回数で円周率が推定され、その結果が表示されます。試行回数を増やすほど、モンテカルロ法による円周率の推定値は真の値（約3.14159）に近づくことが期待できます。
+
+
+<br>
+<br>
+
+---
+
+# 34
+
+## コードの解説
+
+このコードは、映画の推薦システムを作るためのPythonプログラムです。具体的には、過去の映画の評価データを使って、あるユーザーがまだ見ていない映画の中から、そのユーザーが好きそうな映画を予測して推薦します。
+
+### 1. データの準備
+
+```python
+import pandas as pd
+from sklearn.neighbors import NearestNeighbors
+import numpy as np
+
+# 1. MovieLensデータセットの読み込み
+ratings_df = pd.read_csv('ml-latest-small/ratings.csv')
+movies_df = pd.read_csv('ml-latest-small/movies.csv')
+```
+
+最初に、必要な機能をまとめた部品（ライブラリ）を読み込みます。
+
+*   **pandas (pd):** 表形式のデータを扱うのに便利なライブラリです。
+*   **sklearn.neighbors.NearestNeighbors:**  機械学習の機能で、似ているものを探すのに使います。
+*   **numpy (np):** 数値計算を行うための基本的なライブラリです。
+
+次に、映画の評価データと映画の情報をファイルから読み込みます。
+
+*   `ratings.csv` には、ユーザーがどの映画を何点で評価したかのデータが入っています。例えば、「ユーザーIDが1の人が、映画IDが31の映画を2.5点で評価した」といった情報が含まれています。このデータは `ratings_df` という名前の表形式のデータとしてプログラム内で扱われます。
+*   `movies.csv` には、映画のIDとタイトルなどの情報が入っています。例えば、「映画IDが31の映画のタイトルは'Dangerous Minds'である」といった情報が含まれています。このデータは `movies_df` という名前の表形式のデータとしてプログラム内で扱われます。
+
+### 2. ユーザー-アイテム行列の作成
+
+```python
+# ユーザー-アイテム行列の作成
+def create_user_item_matrix(ratings):
+    return ratings.pivot_table(index='userId', columns='movieId', values='rating').fillna(0)
+
+user_item_matrix = create_user_item_matrix(ratings_df)
+```
+
+ユーザーと映画の関係を表す表（ユーザー-アイテム行列）を作成します。
+
+*   `create_user_item_matrix(ratings)` という関数は、評価データ (`ratings_df`) を受け取り、ユーザーIDを縦の列、映画IDを横の列として、それぞれのユーザーがそれぞれの映画に付けた評価値を表の要素とするような表を作成します。まだ評価していない映画の箇所は空欄になります。
+*   `.fillna(0)` は、空欄になっている箇所を0で埋めます。これは、後で似ているユーザーを探す際に、まだ評価していない映画を「評価が0」とみなすためです。
+*   作成された表は `user_item_matrix` という名前で保存されます。例えば、`user_item_matrix` のある行は特定のユーザーの評価傾向を表し、その行の各列の値はそのユーザーが各映画に付けた評価値を表します。
+
+### 3. 類似ユーザー検索モデルの学習
+
+```python
+# NearestNeighborsモデルの学習
+knn = NearestNeighbors(metric='cosine', algorithm='brute')
+knn.fit(user_item_matrix)
+```
+
+似ているユーザーを見つけるための準備をします。
+
+*   `NearestNeighbors(metric='cosine', algorithm='brute')` は、ユーザー間の類似度を計算するためのモデルを作成します。
+    *   `metric='cosine'` は、類似度を測る方法としてコサイン類似度を使うことを指定しています。コサイン類似度は、2つのベクトルの向きがどれくらい似ているかを測る指標で、ここではユーザーの評価傾向の類似度を測るために使われます。
+    *   `algorithm='brute'` は、すべてのユーザーの組み合わせを調べて最も類似したユーザーを見つける方法を指定しています。
+*   `knn.fit(user_item_matrix)` は、作成したモデルに `user_item_matrix` のデータを学習させます。これにより、モデルはユーザー間の類似度を効率的に計算できるようになります。
+
+### 4. 特定のユーザーの評価履歴を取得する関数
+
+```python
+def get_user_ratings(user_id, ratings_df, movies_df):
+    """
+    特定のユーザーの評価履歴を取得する関数。
+    """
+    user_ratings = ratings_df[ratings_df['userId'] == user_id].merge(movies_df, on='movieId')
+    return user_ratings[['movieId', 'title', 'rating']]
+```
+
+特定のユーザーが過去に評価した映画のリストを取得するための関数を定義します。
+
+*   `get_user_ratings(user_id, ratings_df, movies_df)` は、ユーザーID、評価データ、映画データを受け取ります。
+*   `ratings_df[ratings_df['userId'] == user_id]` は、評価データの中から、指定されたユーザーIDと一致する行（つまり、そのユーザーの評価データ）を抽出します。
+*   `.merge(movies_df, on='movieId')` は、抽出した評価データと映画データを、共通の列である `movieId` をキーとして結合します。これにより、評価データに映画のタイトルなどの情報が追加されます。
+*   `return user_ratings[['movieId', 'title', 'rating']]` は、結合後のデータから、映画ID、タイトル、評価の列だけを選択して返します。
+
+### 5. 映画を推薦する関数
+
+```python
+def recommend_movies(user_id, user_item_matrix, movies_df, knn, top_n=5, n_neighbors=10):
+    """
+    特定のユーザーに映画をレコメンドし、根拠となる情報も返す関数。
+    """
+    if user_id not in user_item_matrix.index:
+        print(f"ユーザーID {user_id} は評価履歴がありません。")
+        return None
+
+    user_row = user_item_matrix.loc[[user_id]]
+    distances, neighbor_indices = knn.kneighbors(user_row, n_neighbors=n_neighbors + 1) # 自分自身を含むため + 1
+
+    # 類似ユーザーのIDと類似度を取得 (自分自身を除く)
+    similar_users = pd.DataFrame({'neighborId': user_item_matrix.index[neighbor_indices.flatten()[1:]],
+                                  'similarity': 1 - distances.flatten()[1:]})
+    print(f"\nユーザーID {user_id} と類似度の高いユーザー:")
+    print(similar_users)
+
+    # 予測評価値の計算
+    n_neighbors_for_pred = min(n_neighbors, len(similar_users))  # 類似ユーザー数がn_neighborsより少ない場合を考慮
+    if n_neighbors_for_pred == 0:
+        print("類似ユーザーが見つかりませんでした。人気映画からレコメンドします。")
+        # 人気映画からレコメンド (例として平均評価の高い映画)
+        mean_ratings = ratings_df.groupby('movieId')['rating'].mean().sort_values(ascending=False)
+        popular_movies = movies_df[movies_df['movieId'].isin(mean_ratings.head(top_n).index)]
+        return popular_movies.merge(mean_ratings, on='movieId').rename(columns={'rating': 'predicted_rating'})
+
+    relevant_neighbors = similar_users['neighborId'].head(n_neighbors_for_pred)
+    neighbor_ratings = user_item_matrix.loc[relevant_neighbors]
+
+    # ユーザーがまだ評価していない映画を取得
+    unrated_movie_ids = user_item_matrix.columns[user_item_matrix.loc[user_id] == 0]
+
+    predicted_ratings = pd.Series(0.0, index=unrated_movie_ids)
+    for movie_id in unrated_movie_ids:
+        numerator = 0
+        denominator = 0
+        for neighbor_id in relevant_neighbors:
+            similarity = similar_users[similar_users['neighborId'] == neighbor_id]['similarity'].iloc[0]
+            rating = neighbor_ratings.at[neighbor_id, movie_id]
+            numerator += similarity * rating
+            denominator += abs(similarity)
+
+        if denominator > 0:
+            predicted_ratings[movie_id] = numerator / denominator
+
+    print("\n予測評価値:")
+    print(predicted_ratings.head(20))
+
+    # レコメンド結果の作成
+    recommended_movie_ids = predicted_ratings.sort_values(ascending=False).head(top_n).index
+    recommended_movies = movies_df[movies_df['movieId'].isin(recommended_movie_ids)].copy()
+    if not recommended_movies.empty:
+        recommended_movies['predicted_rating'] = recommended_movies['movieId'].map(predicted_ratings)
+    else:
+        print("\nレコメンドできる映画が見つかりませんでした。")
+        return None
+
+    print("\n予測評価値 (上位):")
+    print(predicted_ratings.sort_values(ascending=False).head(top_n))
+
+    return recommended_movies.sort_values(by='predicted_rating', ascending=False)
+```
+
+特定のユーザーに映画を推薦する中心となる関数です。
+
+1. **ユーザーの存在確認:**  指定された `user_id` が `user_item_matrix` に存在するかどうかを確認します。もし存在しなければ、「評価履歴がない」というメッセージを表示して、何も推薦せずに処理を終えます。
+
+2. **類似ユーザーの特定:**
+    *   `user_row = user_item_matrix.loc[[user_id]]` で、指定されたユーザーの評価データを `user_item_matrix` から取り出します。
+    *   `knn.kneighbors(user_row, n_neighbors=n_neighbors + 1)` で、学習済みの `knn` モデルを使って、このユーザーと評価傾向が似ているユーザーを探します。`n_neighbors` は何人の類似ユーザーを探すかを指定するパラメータで、デフォルトでは10です。 `+ 1` しているのは、自分自身も結果に含まれてしまうため、それを含めて指定した人数 + 1 人のユーザーを取得するためです。
+    *   結果として、類似ユーザーとの距離 (`distances`) と、`user_item_matrix` におけるそれらのユーザーのインデックス (`neighbor_indices`) が得られます。
+    *   `similar_users` というデータフレームを作成し、類似ユーザーのID (`neighborId`) と類似度 (`similarity`) を格納します。類似度は、距離の逆数として計算されます。
+
+3. **類似ユーザーがいない場合の処理:**
+    *   もし類似ユーザーが見つからなかった場合 (`n_neighbors_for_pred == 0`) は、人気のある映画を推薦します。
+    *   映画の平均評価を計算し、評価の高い順に並べ、上位 `top_n` 件の映画を推薦します。
+
+4. **まだ評価していない映画の予測評価値を計算:**
+    *   類似ユーザーの評価情報を使って、指定されたユーザーがまだ評価していない映画に対して、どの程度興味を持つかを予測します。
+    *   `unrated_movie_ids` で、指定されたユーザーがまだ評価していない映画のIDを取得します。
+    *   各未評価映画について、類似ユーザーの評価と類似度を使って予測評価値を計算します。具体的には、類似ユーザーがその映画に高い評価をつけていれば、そのユーザーも興味を持つ可能性が高いと判断します。
+
+5. **レコメンド結果の作成:**
+    *   計算された予測評価値が高い順に映画を並べ、上位 `top_n` 件の映画を推薦リストとして選択します。
+    *   推薦された映画のIDを使って、映画のタイトルなどの情報を `movies_df` から取得し、予測評価値と合わせて表示します。
+
+### 6. メインの処理部分
+
+```python
+if __name__ == "__main__":
+    print("利用可能なユーザーID:")
+    print(user_item_matrix.index.tolist())
+
+    while True:
+        try:
+            user_id_input = int(input("レコメンドを実行するユーザーIDを入力してください (終了するには '0' を入力): "))
+            if user_id_input == 0:
+                break
+
+            if user_id_input in user_item_matrix.index:
+                print(f"\nユーザーID {user_id_input} の評価履歴:")
+                user_ratings = get_user_ratings(user_id_input, ratings_df, movies_df)
+                print(user_ratings)
+
+                recommended = recommend_movies(user_id_input, user_item_matrix, movies_df, knn, top_n=10) # top_n を 10 に変更
+                if recommended is not None:
+                    print(f"\nユーザーID {user_id_input} へのレコメンド結果:")
+                    print(recommended[['movieId', 'title', 'predicted_rating']])
+            else:
+                print("入力されたユーザーIDは存在しません。")
+        except ValueError:
+            print("有効な整数を入力してください。")
+```
+
+この部分は、プログラムを実行したときに最初に実行されるコードです。
+
+1. **利用可能なユーザーIDの表示:**  `user_item_matrix` に含まれるユーザーIDのリストを表示し、ユーザーが誰の推薦結果を見たいかを選択できるようにします。
+2. **ユーザーからの入力を受け付けるループ:**
+    *   `while True:` で無限ループを開始し、ユーザーからの入力を待ち続けます。
+    *   `try:` ブロックは、エラーが発生する可能性のあるコードを囲みます。ここでは、ユーザーが整数を入力しない場合に発生するエラーを捕捉します。
+    *   `input()` 関数でユーザーにユーザーIDの入力を促します。
+    *   ユーザーが `0` を入力すると、 `break` でループを終了し、プログラムを終了します。
+    *   入力されたユーザーIDが `user_item_matrix` に存在するかどうかを確認します。
+        *   存在する場合、そのユーザーの評価履歴を表示し、`recommend_movies` 関数を使って映画を推薦します。推薦された映画のリストと予測評価値を表示します。
+        *   存在しない場合、「入力されたユーザーIDは存在しません。」というメッセージを表示します。
+    *   `except ValueError:` は、ユーザーが整数以外の文字を入力した場合に実行され、「有効な整数を入力してください。」というメッセージを表示します。
+
+
+## [補足] データの中身  (34_data.py)
+
+```bash
+root@00a1890e9919:/workspaces/AtCoder/Practice/34# python 34_data.py
+ratings_df の情報:
+<class 'pandas.core.frame.DataFrame'>
+RangeIndex: 100836 entries, 0 to 100835
+Data columns (total 4 columns):
+ #   Column     Non-Null Count   Dtype
+---  ------     --------------   -----
+ 0   userId     100836 non-null  int64
+ 1   movieId    100836 non-null  int64
+ 2   rating     100836 non-null  float64
+ 3   timestamp  100836 non-null  int64
+dtypes: float64(1), int64(3)
+memory usage: 3.1 MB
+None
+
+ratings_df の先頭5行:
+   userId  movieId  rating  timestamp
+0       1        1     4.0  964982703
+1       1        3     4.0  964981247
+2       1        6     4.0  964982224
+3       1       47     5.0  964983815
+4       1       50     5.0  964982931
+
+ratings_df の統計量:
+              userId        movieId         rating     timestamp
+count  100836.000000  100836.000000  100836.000000  1.008360e+05
+mean      326.127564   19435.295718       3.501557  1.205946e+09
+std       182.618491   35530.987199       1.042529  2.162610e+08
+min         1.000000       1.000000       0.500000  8.281246e+08
+25%       177.000000    1199.000000       3.000000  1.019124e+09
+50%       325.000000    2991.000000       3.500000  1.186087e+09
+75%       477.000000    8122.000000       4.000000  1.435994e+09
+max       610.000000  193609.000000       5.000000  1.537799e+09
+
+ratings_df の欠損値の数:
+userId       0
+movieId      0
+rating       0
+timestamp    0
+dtype: int64
+
+ratings_df のユニークなユーザー数: 610
+ratings_df のユニークな映画数: 9724
+
+ratings_df の評価値の分布:
+rating
+0.5     1370
+1.0     2811
+1.5     1791
+2.0     7551
+2.5     5550
+3.0    20047
+3.5    13136
+4.0    26818
+4.5     8551
+5.0    13211
+Name: count, dtype: int64
+
+movies_df の情報:
+<class 'pandas.core.frame.DataFrame'>
+RangeIndex: 9742 entries, 0 to 9741
+Data columns (total 3 columns):
+ #   Column   Non-Null Count  Dtype
+---  ------   --------------  -----
+ 0   movieId  9742 non-null   int64
+ 1   title    9742 non-null   object
+ 2   genres   9742 non-null   object
+dtypes: int64(1), object(2)
+memory usage: 228.5+ KB
+None
+
+movies_df の先頭5行:
+   movieId                               title                                       genres
+0        1                    Toy Story (1995)  Adventure|Animation|Children|Comedy|Fantasy
+1        2                      Jumanji (1995)                   Adventure|Children|Fantasy
+2        3             Grumpier Old Men (1995)                               Comedy|Romance
+3        4            Waiting to Exhale (1995)                         Comedy|Drama|Romance
+4        5  Father of the Bride Part II (1995)                                       Comedy
+
+movies_df の欠損値の数:
+movieId    0
+title      0
+genres     0
+dtype: int64
+
+movies_df のユニークな映画数: 9742
+
+movies_df の genres のユニークな値:
+951
+
+movies_df の genres の上位10個:
+genres
+Drama                   1053
+Comedy                   946
+Comedy|Drama             435
+Comedy|Romance           363
+Drama|Romance            349
+Documentary              339
+Comedy|Drama|Romance     276
+Drama|Thriller           168
+Horror                   167
+Horror|Thriller          135
+Name: count, dtype: int64
+```
+
+## [補足] 実行結果 (34.py)
+
+```bash
+root@00a1890e9919:/workspaces/AtCoder/Practice/34# python 34.py
+利用可能なユーザーID:
+[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 123, 124, 125, 126, 127, 128, 129, 130, 131, 132, 133, 134, 135, 136, 137, 138, 139, 140, 141, 142, 143, 144, 145, 146, 147, 148, 149, 150, 151, 152, 153, 154, 155, 156, 157, 158, 159, 160, 161, 162, 163, 164, 165, 166, 167, 168, 169, 170, 171, 172, 173, 174, 175, 176, 177, 178, 179, 180, 181, 182, 183, 184, 185, 186, 187, 188, 189, 190, 191, 192, 193, 194, 195, 196, 197, 198, 199, 200, 201, 202, 203, 204, 205, 206, 207, 208, 209, 210, 211, 212, 213, 214, 215, 216, 217, 218, 219, 220, 221, 222, 223, 224, 225, 226, 227, 228, 229, 230, 231, 232, 233, 234, 235, 236, 237, 238, 239, 240, 241, 242, 243, 244, 245, 246, 247, 248, 249, 250, 251, 252, 253, 254, 255, 256, 257, 258, 259, 260, 261, 262, 263, 264, 265, 266, 267, 268, 269, 270, 271, 272, 273, 274, 275, 276, 277, 278, 279, 280, 281, 282, 283, 284, 285, 286, 287, 288, 289, 290, 291, 292, 293, 294, 295, 296, 297, 298, 299, 300, 301, 302, 303, 304, 305, 306, 307, 308, 309, 310, 311, 312, 313, 314, 315, 316, 317, 318, 319, 320, 321, 322, 323, 324, 325, 326, 327, 328, 329, 330, 331, 332, 333, 334, 335, 336, 337, 338, 339, 340, 341, 342, 343, 344, 345, 346, 347, 348, 349, 350, 351, 352, 353, 354, 355, 356, 357, 358, 359, 360, 361, 362, 363, 364, 365, 366, 367, 368, 369, 370, 371, 372, 373, 374, 375, 376, 377, 378, 379, 380, 381, 382, 383, 384, 385, 386, 387, 388, 389, 390, 391, 392, 393, 394, 395, 396, 397, 398, 399, 400, 401, 402, 403, 404, 405, 406, 407, 408, 409, 410, 411, 412, 413, 414, 415, 416, 417, 418, 419, 420, 421, 422, 423, 424, 425, 426, 427, 428, 429, 430, 431, 432, 433, 434, 435, 436, 437, 438, 439, 440, 441, 442, 443, 444, 445, 446, 447, 448, 449, 450, 451, 452, 453, 454, 455, 456, 457, 458, 459, 460, 461, 462, 463, 464, 465, 466, 467, 468, 469, 470, 471, 472, 473, 474, 475, 476, 477, 478, 479, 480, 481, 482, 483, 484, 485, 486, 487, 488, 489, 490, 491, 492, 493, 494, 495, 496, 497, 498, 499, 500, 501, 502, 503, 504, 505, 506, 507, 508, 509, 510, 511, 512, 513, 514, 515, 516, 517, 518, 519, 520, 521, 522, 523, 524, 525, 526, 527, 528, 529, 530, 531, 532, 533, 534, 535, 536, 537, 538, 539, 540, 541, 542, 543, 544, 545, 546, 547, 548, 549, 550, 551, 552, 553, 554, 555, 556, 557, 558, 559, 560, 561, 562, 563, 564, 565, 566, 567, 568, 569, 570, 571, 572, 573, 574, 575, 576, 577, 578, 579, 580, 581, 582, 583, 584, 585, 586, 587, 588, 589, 590, 591, 592, 593, 594, 595, 596, 597, 598, 599, 600, 601, 602, 603, 604, 605, 606, 607, 608, 609, 610]
+レコメンドを実行するユーザーIDを入力してください (終了するには '0' を入力): 1
+
+ユーザーID 1 の評価履歴:
+     movieId                           title  rating
+0          1                Toy Story (1995)     4.0
+1          3         Grumpier Old Men (1995)     4.0
+2          6                     Heat (1995)     4.0
+3         47     Seven (a.k.a. Se7en) (1995)     5.0
+4         50      Usual Suspects, The (1995)     5.0
+..       ...                             ...     ...
+227     3744                    Shaft (2000)     4.0
+228     3793                    X-Men (2000)     5.0
+229     3809          What About Bob? (1991)     4.0
+230     4006  Transformers: The Movie (1986)     4.0
+231     5060    M*A*S*H (a.k.a. MASH) (1970)     5.0
+
+[232 rows x 3 columns]
+
+ユーザーID 1 と類似度の高いユーザー:
+   neighborId  similarity
+0         266    0.357408
+1         313    0.351562
+2         368    0.345127
+3          57    0.345034
+4          91    0.334727
+5         469    0.330664
+6          39    0.329782
+7         288    0.329700
+8         452    0.328048
+9          45    0.327922
+
+予測評価値:
+movieId
+2     0.492187
+4     0.000000
+5     0.486147
+7     0.291057
+8     0.000000
+9     0.000000
+10    2.251762
+11    0.890794
+12    0.195090
+13    0.195090
+14    0.000000
+15    0.000000
+16    1.382797
+17    0.447150
+18    0.000000
+19    0.634650
+20    0.000000
+21    2.209931
+22    0.652942
+23    0.000000
+dtype: float64
+
+予測評価値 (上位):
+movieId
+589     4.195979
+1200    4.119903
+2762    3.971041
+1610    3.957980
+858     3.885992
+924     3.855366
+1036    3.805436
+541     3.710023
+1221    3.581387
+1968    3.574258
+dtype: float64
+
+ユーザーID 1 へのレコメンド結果:
+      movieId                              title  predicted_rating
+507       589  Terminator 2: Judgment Day (1991)          4.195979
+902      1200                      Aliens (1986)          4.119903
+2078     2762            Sixth Sense, The (1999)          3.971041
+1211     1610   Hunt for Red October, The (1990)          3.957980
+659       858              Godfather, The (1972)          3.885992
+706       924       2001: A Space Odyssey (1968)          3.855366
+793      1036                    Die Hard (1988)          3.805436
+474       541                Blade Runner (1982)          3.710023
+922      1221     Godfather: Part II, The (1974)          3.581387
+1445     1968         Breakfast Club, The (1985)          3.574258
+レコメンドを実行するユーザーIDを入力してください (終了するには '0' を入力):
+```
