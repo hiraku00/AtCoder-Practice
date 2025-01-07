@@ -22,6 +22,8 @@ RUN pip install sqlalchemy Flask Flask-SQLAlchemy Flask-Migrate Flask-Login Werk
 RUN pip install SpeechRecognition PyAudio
 # statsmodels
 RUN pip install statsmodels
+# selenium
+RUN pip install selenium
 
 # # .devcontainer/requirements.txt をコピーしてインストール
 # COPY .devcontainer/requirements.txt /tmp/requirements.txt
