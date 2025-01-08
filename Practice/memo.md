@@ -2682,3 +2682,162 @@ dtype: float64
 1445     1968         Breakfast Club, The (1985)          3.574258
 レコメンドを実行するユーザーIDを入力してください (終了するには '0' を入力):
 ```
+
+<br>
+<br>
+
+---
+
+# 35
+
+**全体の流れ**
+
+1. **準備:** Selenium ライブラリに必要な機能を読み込み、検索したいキーワードを設定します。
+2. **ブラウザの起動:**  指定された Web ブラウザ（ここでは Chrome）をプログラムから起動します。
+3. **Google 検索:** 起動したブラウザで Google のウェブサイトを開き、設定したキーワードで検索を実行します。
+4. **検索結果の取得:** 検索結果の中から、上位 5 件のリンクを見つけ出します。
+5. **各ページへのアクセスとタイトル表示:** 見つけた 5 つのリンク先のウェブページを順番に開き、それぞれのページのタイトルを表示します。
+6. **終了:**  すべての処理が終わったら、起動したブラウザを閉じます。
+
+**コードの行ごとの詳細な解説**
+
+```python
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.chrome.service import Service  # Serviceクラスをインポート
+import time
+```
+
+- **`from selenium import webdriver`**:  Selenium ライブラリの中で、Web ブラウザを操作するための主要な機能 (`webdriver`) を使えるようにします。例: ブラウザの起動やページの移動など。
+- **`from selenium.webdriver.common.by import By`**:  ウェブページ上の特定の要素（例えば、検索窓やリンクなど）を、その種類や属性に基づいて見つけ出すための方法 (`By`) を使えるようにします。例: 名前で探す、CSS セレクタで探すなど。
+- **`from selenium.webdriver.common.keys import Keys`**: キーボードのキー操作（Enter キー、Esc キーなど）をプログラムからシミュレートするための機能 (`Keys`) を使えるようにします。
+- **`from selenium.webdriver.chrome.service import Service`**:  Chrome ブラウザを起動・管理するための機能 (`Service`) を使えるようにします。これは Selenium の比較的新しいバージョンで ChromeDriver のパスを指定する際に使われます。ただし、現在のコードでは直接は使用していません。
+- **`import time`**: プログラムの実行を一時的に停止させる機能 (`time.sleep()`) を使えるようにします。これは、ウェブページの読み込みを待つためなどに使用します。
+
+```python
+# 検索キーワード
+search_keyword = "Selenium Python ブラウザ自動化"
+```
+
+- **`search_keyword = "Selenium Python ブラウザ自動化"`**:  変数 `search_keyword` に、Google 検索で使用するキーワード（ここでは "Selenium Python ブラウザ自動化"）を文字列として設定します。このキーワードを使って Google 検索を行います。
+
+```python
+# ChromeDriverのパス (ご自身の環境に合わせて修正)
+chromedriver_path = "./chromedriver"  # スクリプトと同じディレクトリに置いた場合
+```
+
+- **`chromedriver_path = "./chromedriver"`**:  変数 `chromedriver_path` に、ChromeDriver という外部プログラムのファイルが置かれている場所を指定します。ChromeDriver は、Selenium が Chrome ブラウザを操作するために必要なツールです。`"./chromedriver"` は、Python スクリプトファイルと同じディレクトリに ChromeDriver が置かれている場合を示します。**重要:** 実際にこのコードを動かすには、適切なバージョンの ChromeDriver をダウンロードし、このパスがそのファイルの場所を正しく指しているように設定する必要があります。
+
+```python
+# ブラウザの起動 (今回はChromeを使用)
+driver = webdriver.Chrome()
+```
+
+- **`driver = webdriver.Chrome()`**:  Selenium の機能を使って Chrome ブラウザを起動します。起動されたブラウザの操作は、変数 `driver` を通して行います。この行が実行されると、通常、新しい Chrome のウィンドウが開きます。
+
+```python
+try:
+    # Google検索にアクセス
+    driver.get("https://www.google.com/")
+```
+
+- **`driver.get("https://www.google.com/")`**:  `driver` (起動した Chrome ブラウザ) を使って、Google のウェブサイト (`https://www.google.com/`) を開きます。これにより、プログラムで操作している Chrome ウィンドウが Google のホームページを表示します。
+
+```python
+    # 検索窓の要素を特定してキーワードを入力
+    search_box = driver.find_element(By.NAME, "q")
+    search_box.send_keys(search_keyword)
+    search_box.send_keys(Keys.RETURN)  # Enterキーを押して検索
+```
+
+- **`search_box = driver.find_element(By.NAME, "q")`**:  開いた Google のページから、名前属性が "q" である要素（これは Google の検索窓です）を見つけ出し、その要素を `search_box` という変数に格納します。
+- **`search_box.send_keys(search_keyword)`**:  `search_box` (検索窓) に、事前に設定した検索キーワード (`search_keyword`) を入力します。これは、手動で検索窓にキーワードを入力するのと同じ操作です。
+- **`search_box.send_keys(Keys.RETURN)`**:  検索窓で Enter キーが押されたことをシミュレートします。これにより、入力されたキーワードでの検索が開始されます。
+
+```python
+    # 検索結果が表示されるまで少し待機
+    time.sleep(2)
+```
+
+- **`time.sleep(2)`**:  プログラムの実行を 2 秒間一時停止します。これは、Google の検索結果が完全に表示されるのを待つために行います。ネットワーク環境などによっては、もう少し長く待つ必要があるかもしれません。
+
+```python
+    # 検索結果の上位5件の要素を取得
+    search_results = driver.find_elements(By.CSS_SELECTOR, "div.g")[:5]
+```
+
+- **`search_results = driver.find_elements(By.CSS_SELECTOR, "div.g")[:5]`**:  検索結果のページから、CSS セレクタ `"div.g"` に一致するすべての要素を見つけ出し、そのうち最初の 5 つを `search_results` という変数に格納します。`"div.g"` は、Google の検索結果 1 件分の情報を囲む HTML 要素の CSS クラス名です。これにより、上位 5 件の検索結果の塊を取得できます。
+
+```python
+    # 上位5件のページにアクセスしてタイトルを表示
+    print(f"「{search_keyword}」の検索結果上位5件のページタイトル:")
+    for i, result in enumerate(search_results):
+        try:
+            # 検索結果からリンク要素を取得
+            link_element = result.find_element(By.CSS_SELECTOR, "a")
+            link_url = link_element.get_attribute("href")
+```
+
+- **`print(f"「{search_keyword}」の検索結果上位5件のページタイトル:")`**:  プログラムの出力として、検索キーワードとこれから表示する内容のプレフィックスを表示します。
+- **`for i, result in enumerate(search_results):`**:  取得した検索結果 (`search_results`) を一つずつ処理するループを開始します。`enumerate` を使うことで、各検索結果の要素 (`result`) とそのインデックス (`i`) を同時に取得できます。
+- **`link_element = result.find_element(By.CSS_SELECTOR, "a")`**:  現在の検索結果 (`result`) の中から、CSS セレクタ `"a"` に一致する要素（これはリンクを表す HTML タグです）を見つけ出し、`link_element` という変数に格納します。
+- **`link_url = link_element.get_attribute("href")`**:  見つけたリンク要素 (`link_element`) から、`href` 属性の値（リンク先の URL）を取得し、`link_url` という変数に格納します。
+
+```python
+            # 新しいタブでページを開く
+            driver.execute_script("window.open(arguments[0]);", link_url)
+
+            # 新しいタブに切り替え
+            driver.switch_to.window(driver.window_handles[-1])
+
+            # ページが完全にロードされるまで少し待機 (より確実に)
+            time.sleep(3)
+```
+
+- **`driver.execute_script("window.open(arguments[0]);", link_url)`**:  JavaScript のコードを実行して、新しいタブで `link_url` のページを開きます。
+- **`driver.switch_to.window(driver.window_handles[-1])`**:  Selenium の操作対象を、新しく開いたタブに切り替えます。`driver.window_handles` は開いているすべてのタブのリストで、`[-1]` は最後のタブ（つまり新しく開いたタブ）を指します。
+- **`time.sleep(3)`**:  新しいタブで開いたページが完全に読み込まれるまで、3 秒間プログラムの実行を一時停止します。
+
+```python
+            # ページタイトルを取得して表示
+            page_title = driver.title
+            print(f"{i+1}: {page_title}")
+
+            # タブを閉じる
+            driver.close()
+
+            # 元のタブに戻る
+            driver.switch_to.window(driver.window_handles[0])
+```
+
+- **`page_title = driver.title`**:  現在操作しているタブ（新しく開いたページ）のタイトルを取得し、`page_title` という変数に格納します。
+- **`print(f"{i+1}: {page_title}")`**:  取得したページタイトルを、番号付きでプログラムの出力として表示します。
+- **`driver.close()`**:  現在操作しているタブ（新しく開いたページ）を閉じます。
+- **`driver.switch_to.window(driver.window_handles[0])`**:  Selenium の操作対象を、最初のタブ（Google の検索結果が表示されているタブ）に戻します。
+
+```python
+        except Exception as e:
+            print(f"{i+1}: ページへのアクセスに失敗しました: {e}")
+```
+
+- **`except Exception as e:`**:  `try` ブロック内で何らかのエラーが発生した場合に実行される処理を記述します。
+- **`print(f"{i+1}: ページへのアクセスに失敗しました: {e}")`**:  エラーが発生した場合、その旨とエラー内容をプログラムの出力として表示します。
+
+```python
+except Exception as e:
+    print(f"エラーが発生しました: {e}")
+```
+
+- これは、Google 検索へのアクセスや検索キーワードの入力など、`try` ブロックのより広い範囲でエラーが発生した場合に実行される処理です。エラーが発生した場合、その旨とエラー内容をプログラムの出力として表示します。
+
+```python
+finally:
+    # ブラウザを閉じる
+    driver.quit()
+```
+
+- **`finally:`**:  `try` ブロック内の処理が正常に終了した場合でも、エラーが発生した場合でも、**必ず**実行される処理を記述します。
+- **`driver.quit()`**:  起動した Chrome ブラウザを完全に閉じます。これにより、プログラム実行後にブラウザが残り続けるのを防ぎます。
+
+このコードを実行すると、Chrome ブラウザが自動的に操作され、指定したキーワードで Google 検索を行い、上位 5 件の検索結果のページのタイトルが表示されます。
