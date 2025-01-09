@@ -3,5 +3,5 @@ __pycache__/
 *.pyc
 instance/
 # 36
-aclImdb/test/
-aclImdb/train/
+Practice/36/aclImdb/test/
+Practice/36/aclImdb/train/
