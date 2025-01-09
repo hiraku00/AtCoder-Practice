@@ -2841,3 +2841,231 @@ finally:
 - **`driver.quit()`**:  起動した Chrome ブラウザを完全に閉じます。これにより、プログラム実行後にブラウザが残り続けるのを防ぎます。
 
 このコードを実行すると、Chrome ブラウザが自動的に操作され、指定したキーワードで Google 検索を行い、上位 5 件の検索結果のページのタイトルが表示されます。
+
+<br>
+<br>
+
+---
+
+# 36
+
+## **コードの概要**
+
+このプログラムは、映画レビューの文章を読み込み、そのレビューが肯定的か否定的かを自動的に分類するものです。具体的には、IMDbという映画レビューのデータセットを使って、文章の特徴を捉え、それを元にレビューが肯定的な意見を含んでいるか、否定的な意見を含んでいるかを判断します。
+
+## **コードの各部分の詳細な解説**
+
+### 1. **ライブラリのインポート**
+
+   ```python
+   import numpy as np
+   from sklearn.datasets import load_files
+   from sklearn.model_selection import train_test_split
+   from sklearn.feature_extraction.text import TfidfVectorizer
+   from sklearn.linear_model import LogisticRegression
+   from sklearn.metrics import accuracy_score
+   from sklearn.pipeline import Pipeline
+   ```
+
+   - `import numpy as np`:  `numpy` は、数値計算を効率的に行うためのライブラリです。ここでは、配列などの数値を扱うために使用します。`np` という名前で `numpy` を使えるようにしています。
+   - `from sklearn.datasets import load_files`: `sklearn` (scikit-learn) は、機械学習のための様々な機能を提供するライブラリです。`sklearn.datasets` モジュールには、データセットを読み込むための機能が含まれています。`load_files` は、特定のフォルダ構造を持つテキストデータを読み込むために使用します。
+   - `from sklearn.model_selection import train_test_split`: `sklearn.model_selection` モジュールには、データを訓練用とテスト用に分割する機能が含まれています。今回は使用していませんが、一般的にはモデルの性能を評価するためにデータを分割することが多いです。
+   - `from sklearn.feature_extraction.text import TfidfVectorizer`: `sklearn.feature_extraction.text` モジュールには、テキストデータから特徴量を抽出する機能が含まれています。`TfidfVectorizer` は、文章中の単語の重要度を数値化するために使用します。
+   - `from sklearn.linear_model import LogisticRegression`: `sklearn.linear_model` モジュールには、線形モデルを用いた分類や回帰の機能が含まれています。`LogisticRegression` は、ロジスティック回帰という分類アルゴリズムのクラスです。
+   - `from sklearn.metrics import accuracy_score`: `sklearn.metrics` モジュールには、モデルの性能を評価するための指標が含まれています。`accuracy_score` は、正解率を計算するために使用します。
+   - `from sklearn.pipeline import Pipeline`: `sklearn.pipeline` モジュールには、一連の処理をまとめて実行するための `Pipeline` クラスが含まれています。ここでは、テキストのベクトル化とモデルの学習を順番に行うために使用します。
+
+### 2. **データセットのロード**
+
+   ```python
+   # 今回は、事前にダウンロードしたIMDbデータセットをロードします。
+   # scikit-learnのload_files関数を利用して、フォルダ構造からデータを読み込みます。
+   reviews_train = load_files('./aclImdb/train', categories=['pos', 'neg'])
+   text_train, y_train = reviews_train.data, reviews_train.target
+
+   reviews_test = load_files('./aclImdb/test', categories=['pos', 'neg'])
+   text_test, y_test = reviews_test.data, reviews_test.target
+   ```
+
+   - `load_files('./aclImdb/train', categories=['pos', 'neg'])`:  `load_files` 関数を使って、指定されたフォルダ (`./aclImdb/train`) からテキストデータを読み込みます。
+     - `'./aclImdb/train'` は、訓練データが格納されているフォルダのパスです。このフォルダの中に、肯定的なレビューが格納された `pos` フォルダと、否定的なレビューが格納された `neg` フォルダがあることを前提としています。
+     - `categories=['pos', 'neg']` は、読み込む対象のサブフォルダを指定します。`pos` フォルダのファイルは肯定的なレビュー、`neg` フォルダのファイルは否定的なレビューとして扱われます。
+     - 読み込まれたデータは `reviews_train` に格納されます。`reviews_train` は、レビューのテキストデータと、そのレビューが肯定的なものか否定的なものかを示すラベル（0または1）を含んでいます。
+
+   - `text_train, y_train = reviews_train.data, reviews_train.target`: `reviews_train` から、レビューのテキストデータを `text_train` に、対応するラベル（0: 否定, 1: 肯定）を `y_train` にそれぞれ取り出します。
+
+   - 同様の処理をテストデータに対しても行います。`reviews_test` にはテストデータが、`text_test` にはテストデータのテキスト、`y_test` にはテストデータのラベルが格納されます。
+
+   **具体的な処理の例:**
+   `./aclImdb/train/pos` フォルダの中に `0_9.txt` というファイルがあり、その内容が "This movie was great!" だったとします。`load_files` はこのファイルを読み込み、`text_train` のどこかの要素に "This movie was great!" という文字列が格納されます。また、このレビューが `pos` フォルダにあったため、`y_train` の対応する要素には 1 （肯定）というラベルが格納されます。`neg` フォルダのレビューについても同様に処理されます。
+
+### 3. **データセットの確認**
+
+   ```python
+   # データセットの確認
+   print(f"訓練データ数: {len(text_train)}")
+   print(f"テストデータ数: {len(text_test)}")
+   print(f"クラスラベル (訓練データ): {np.unique(y_train)}")
+   ```
+
+   - `print(f"訓練データ数: {len(text_train)}")`: 訓練データ（レビューの文章）がいくつ読み込まれたかを画面に表示します。`len(text_train)` は、`text_train` リストの要素数を返します。
+   - `print(f"テストデータ数: {len(text_test)}")`: テストデータがいくつ読み込まれたかを画面に表示します。
+   - `print(f"クラスラベル (訓練データ): {np.unique(y_train)}")`: 訓練データのラベルの種類を画面に表示します。`np.unique(y_train)` は、`y_train` 配列に含まれるユニークな要素（ここでは 0 と 1）を返します。
+
+   **出力例:**
+   ```
+   訓練データ数: 25000
+   テストデータ数: 25000
+   クラスラベル (訓練データ): [0 1]
+   ```
+   これは、訓練データとテストデータそれぞれに25000件のレビューがあり、ラベルは 0（否定）と 1（肯定）の2種類であることを示しています。
+
+### 4. **Pipelineの構築**
+
+   ```python
+   # テキストデータのベクトル化とモデルの学習をPipelineで組み合わせる
+   pipeline = Pipeline([
+       ('tfidf', TfidfVectorizer(
+           stop_words='english',  # ストップワードの除去
+           max_df=0.7,           # ドキュメント頻度が最大の70%を超える単語は無視
+           min_df=5              # 少なくとも5つのドキュメントに現れる単語のみを考慮
+       )),
+       ('clf', LogisticRegression(solver='liblinear', random_state=42)) # ロジスティック回帰を使用
+   ])
+   ```
+
+   - `Pipeline(...)`:  `Pipeline` は、一連のデータ変換とモデル学習のステップを順番に実行するための仕組みです。これにより、コードを整理しやすくなります。
+   - `('tfidf', TfidfVectorizer(...))`:  最初のステップとして、テキストデータを数値データに変換する処理を行います。
+     - `TfidfVectorizer`:  テキストデータから特徴量を抽出するクラスです。各単語の TF-IDF という値を計算し、それをレビューの特徴量として用います。
+       - `stop_words='english'`:  英語のストップワード（"the", "a", "is" など、文章中で頻繁に出現するが意味を持たない単語）を分析対象から除外します。これにより、重要度の低い単語に影響されにくくなります。
+       - `max_df=0.7`:  全レビューの中で、70%以上のレビューに出現する単語は、特徴量として考慮しません。これは、あまりにも多くのレビューに出現する単語は、レビューの肯定的・否定的な性質を区別するのに役立たないと考えられるためです。
+       - `min_df=5`:  5つ未満のレビューにしか出現しない単語は、特徴量として考慮しません。これは、出現頻度の低い単語はノイズとなる可能性が高いためです。
+
+   - `('clf', LogisticRegression(...))`: 次のステップとして、分類モデルの学習を行います。
+     - `LogisticRegression`: ロジスティック回帰という分類アルゴリズムを使用します。このアルゴリズムは、入力された特徴量に基づいて、レビューが肯定的なものである確率を計算します。
+       - `solver='liblinear'`: ロジスティック回帰の学習に使用するアルゴリズムを指定します。`liblinear` は、比較的小規模なデータセットに適したソルバーです。
+       - `random_state=42`: 乱数のシード値を指定します。これにより、コードを何度実行しても同じ結果が得られるようになります。
+
+   **具体的な処理の例:**
+   レビューの文章 "This movie was very good, I enjoyed it a lot." が `TfidfVectorizer` に入力されると、まずストップワード ("this", "was", "very", "a") が取り除かれ、残りの単語 ("movie", "good", "I", "enjoyed", "it", "lot") の TF-IDF 値が計算されます。例えば、"good" という単語が肯定的なレビューに多く出現する場合、高い TF-IDF 値を持つ可能性があります。これらの TF-IDF 値が、このレビューの数値的な特徴量として `LogisticRegression` に入力され、レビューが肯定的か否定的かの確率が計算されます。
+
+### 5. **モデルの訓練**
+
+   ```python
+   # モデルの訓練
+   pipeline.fit(text_train, y_train)
+   ```
+
+   - `pipeline.fit(text_train, y_train)`:  構築した `pipeline` を使って、訓練データ (`text_train`) とそれに対応するラベル (`y_train`) からモデルを学習させます。
+     - 内部的には、まず `TfidfVectorizer` が `text_train` を解析し、単語ごとの TF-IDF 値を計算します。
+     - 次に、計算された TF-IDF 値と `y_train` のラベルを元に、`LogisticRegression` がレビューが肯定的か否定的かを予測するためのルール（各単語の重要度など）を学習します。
+
+   **具体的な処理の例:**
+   `pipeline.fit` は、大量の訓練データ（肯定的なレビューと否定的なレビューの文章とそのラベル）を `LogisticRegression` に与え、「good」や「excellent」のような単語は肯定的なレビューによく現れる傾向がある、「bad」や「terrible」のような単語は否定的なレビューによく現れる傾向がある、といったパターンを学習します。
+
+### 6. **訓練データでの予測と評価**
+
+   ```python
+   # 訓練データでの予測と評価
+   y_train_pred = pipeline.predict(text_train)
+   train_accuracy = accuracy_score(y_train, y_train_pred)
+   print(f"訓練データの正解率: {train_accuracy:.4f}")
+   ```
+
+   - `y_train_pred = pipeline.predict(text_train)`: 学習済みの `pipeline` を使って、訓練データ (`text_train`) に対する予測ラベルを生成します。つまり、訓練データ中の各レビューが肯定的か否定的かをモデルに判断させます。
+   - `train_accuracy = accuracy_score(y_train, y_train_pred)`:  予測されたラベル (`y_train_pred`) と実際のラベル (`y_train`) を比較し、正解率を計算します。正解率は、全データ中で正しく分類できた割合を示します。
+   - `print(f"訓練データの正解率: {train_accuracy:.4f}")`: 計算された訓練データの正解率を画面に表示します。
+
+   **具体的な処理の例:**
+   学習済みのモデルに、訓練データに含まれる "This movie was great!" というレビューを入力すると、モデルは過去の学習結果から、このレビューに含まれる単語 ("movie", "great" など) の特徴に基づいて、高い確率で肯定的なレビューであると予測します。`accuracy_score` は、このような予測が訓練データ全体でどの程度正しかったかを計算します。例えば、訓練データ100件のうち95件の予測が正しければ、正解率は 0.95 となります。
+
+### 7. **テストデータでの予測と評価**
+
+   ```python
+   # テストデータでの予測と評価
+   y_test_pred = pipeline.predict(text_test)
+   test_accuracy = accuracy_score(y_test, y_test_pred)
+   print(f"テストデータの正解率: {test_accuracy:.4f}")
+   ```
+
+   - 訓練データでの予測と評価と同様の処理を、テストデータ (`text_test`, `y_test`) に対して行います。テストデータは、モデルの学習には一切使用していない、未知のデータです。このデータに対する正解率を評価することで、モデルの汎化性能（未知のデータに対する予測能力）を測ることができます。
+
+   **具体的な処理の例:**
+   学習済みのモデルに、テストデータに含まれる、学習時には見ていない "The acting was terrible, I wouldn't recommend it." というレビューを入力すると、モデルは同様に単語の特徴から否定的なレビューであると予測します。テストデータの正解率は、モデルが未知のレビューを正しく分類できる能力を示します。
+
+### 8. **目標性能の確認**
+
+   ```python
+   # 目標性能の確認
+   train_goal_achieved = train_accuracy >= 0.90
+   test_goal_achieved = test_accuracy >= 0.85
+
+   print(f"訓練データの目標達成: {train_goal_achieved}")
+   print(f"テストデータの目標達成: {test_goal_achieved}")
+   ```
+
+   - 計算された訓練データの正解率とテストデータの正解率が、事前に設定した目標値（訓練データ: 90%以上、テストデータ: 85%以上）を満たしているかどうかを確認し、その結果を画面に表示します。
+
+### 9. **モデルのチューニング（オプション）**
+
+   ```python
+   # 必要に応じてモデルのチューニング (例: ハイパーパラメータの調整)
+   from sklearn.model_selection import GridSearchCV
+   parameters = {
+       'tfidf__ngram_range': [(1, 1), (1, 2)],
+       'clf__C': [0.1, 1, 10]
+   }
+   grid_search = GridSearchCV(pipeline, parameters, cv=5, n_jobs=-1)
+   grid_search.fit(text_train, y_train)
+   print(f"Best score: {grid_search.best_score_}")
+   print(f"Best parameters: {grid_search.best_params_}")
+
+   # 最適なパラメータで再度評価
+   best_pipeline = grid_search.best_estimator_
+   y_test_pred_best = best_pipeline.predict(text_test)
+   test_accuracy_best = accuracy_score(y_test, y_test_pred_best)
+   print(f"チューニング後のテストデータの正解率: {test_accuracy_best:.4f}")
+   ```
+
+   - この部分は、モデルの性能をさらに向上させるために、モデルのハイパーパラメータを調整する処理です。
+
+   - `GridSearchCV(pipeline, parameters, cv=5, n_jobs=-1)`:  `GridSearchCV` は、指定されたハイパーパラメータの候補の中から、最適な組み合わせを見つけ出すための機能です。
+     - `pipeline`:  調整対象のモデル（ここでは、テキストのベクトル化とロジスティック回帰を組み合わせた `pipeline`）を指定します。
+     - `parameters`: 調整するハイパーパラメータとその候補値を辞書形式で指定します。
+       - `'tfidf__ngram_range': [(1, 1), (1, 2)]`: `TfidfVectorizer` の `ngram_range` パラメータを `(1, 1)`（単語単位）と `(1, 2)`（単語と2単語の組み合わせ）で試します。例えば、`(1, 2)` を指定すると、"good movie" のような連続する2つの単語も特徴量として考慮されます。
+       - `'clf__C': [0.1, 1, 10]`: `LogisticRegression` の `C` パラメータを `0.1`, `1`, `10` で試します。`C` は正則化の強さを調整するパラメータで、過学習を防ぐために使用します。
+     - `cv=5`:  交差検証の分割数を指定します。データを5つに分割し、そのうち4つを訓練データ、1つを検証データとして、パラメータの評価を5回繰り返します。これにより、単一の分割に依存しない、より安定した評価が可能になります。
+     - `n_jobs=-1`:  利用可能なすべてのCPUコアを使用して並列処理を行います。これにより、パラメータの探索を高速化できます。
+
+   - `grid_search.fit(text_train, y_train)`:  指定されたハイパーパラメータのすべての組み合わせについて、交差検証を行い、最適なパラメータを見つけ出します。
+
+   - `print(f"Best score: {grid_search.best_score_}")`: 交差検証で最も良い性能を示したスコア（デフォルトでは正解率）を表示します。
+
+   - `print(f"Best parameters: {grid_search.best_params_}")`: 最も良いスコアが得られた時のハイパーパラメータの組み合わせを表示します。
+
+   - `best_pipeline = grid_search.best_estimator_`:  見つかった最適なハイパーパラメータで学習済みのモデルを取得します。
+
+   - `y_test_pred_best = best_pipeline.predict(text_test)`: 最適なモデルを使って、再度テストデータの予測を行います。
+
+   - `test_accuracy_best = accuracy_score(y_test, y_test_pred_best)`: 最適なモデルでのテストデータの正解率を計算します。
+
+   - `print(f"チューニング後のテストデータの正解率: {test_accuracy_best:.4f}")`: チューニング後のテストデータの正解率を画面に表示します。
+
+   **具体的な処理の例:**
+   `GridSearchCV` は、例えば `ngram_range=(1, 1)` かつ `C=0.1` の場合、`ngram_range=(1, 2)` かつ `C=1` の場合など、指定されたすべてのパラメータの組み合わせでモデルを学習・評価します。交差検証では、訓練データをさらに分割し、学習に使用するデータと性能評価に使用するデータを切り替えながら評価を行います。最も良い性能を示したパラメータの組み合わせが「最適なパラメータ」として選択され、そのパラメータで再度学習されたモデルが最終的な評価に使用されます。
+
+## [ref] log
+
+```bash
+root@00a1890e9919:/workspaces/AtCoder/Practice/36# python 36.py
+訓練データ数: 25000
+テストデータ数: 25000
+クラスラベル (訓練データ): [0 1]
+訓練データの正解率: 0.9339
+テストデータの正解率: 0.8793
+訓練データの目標達成: True
+テストデータの目標達成: True
+Best score: 0.89604
+Best parameters: {'clf__C': 10, 'tfidf__ngram_range': (1, 2)}
+チューニング後のテストデータの正解率: 0.8834
+```
