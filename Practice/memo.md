@@ -3069,3 +3069,220 @@ Best score: 0.89604
 Best parameters: {'clf__C': 10, 'tfidf__ngram_range': (1, 2)}
 チューニング後のテストデータの正解率: 0.8834
 ```
+
+
+<br>
+<br>
+
+---
+
+# 37
+
+## **コードの概要**
+
+このPythonコードは、ワインの品質に関するデータセットを読み込み、そのデータの分布や特徴量間の関係を視覚的に表示するためのものです。具体的には、各特徴量のヒストグラム（データの分布を表すグラフ）と、特徴量同士の相関関係を示すヒートマップを作成します。
+
+## **コードの各部分の説明**
+
+### 1. **ライブラリのインポート**
+
+```python
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+```
+
+*   `import pandas as pd`:  `pandas` は、表形式のデータを扱うのに非常に便利なライブラリです。ここでは、ワインのデータを読み込んだり、操作したりするために使います。`pd` という省略名で使えるようにしています。例えるなら、Excelのような表計算ソフトをPythonで扱うための道具箱のようなものです。
+
+*   `import matplotlib.pyplot as plt`: `matplotlib` は、グラフを描画するための基本的なライブラリです。ここでは、ヒストグラムやヒートマップなどのグラフを作成するために使用します。`plt` という省略名で使えるようにしています。これは、紙にグラフを描くための鉛筆や定規のようなものです。
+
+*   `import seaborn as sns`: `seaborn` は、`matplotlib` をベースにして、より洗練された統計的なグラフを簡単に作成できるようにするライブラリです。ここでは、ヒートマップを美しく表示するために使います。`sns` という省略名で使えるようにしています。これは、鉛筆や定規に加えて、色鉛筆や美しいテンプレートが揃った、より高度な描画ツールセットのようなものです。
+
+### 2. **データセットのURLとカラム名の定義**
+
+```python
+# Dataset URL
+url = "https://archive.ics.uci.edu/ml/machine-learning-databases/wine/wine.data"
+
+# Column names
+column_names = [
+    "Class",
+    "Alcohol",
+    "Malic acid",
+    "Ash",
+    "Alcalinity of ash",
+    "Magnesium",
+    "Total phenols",
+    "Flavanoids",
+    "Nonflavanoid phenols",
+    "Proanthocyanins",
+    "Color intensity",
+    "Hue",
+    "OD280/OD315 of diluted wines",
+    "Proline",
+]
+```
+
+*   `url = "https://archive.ics.uci.edu/ml/machine-learning-databases/wine/wine.data"`: これは、使用するワインのデータセットがインターネット上のどこにあるかを示す住所のようなものです。このURLにアクセスすることで、プログラムはデータをダウンロードできます。
+
+*   `column_names = [...]`: これは、データセットに含まれる各列（データの項目）の名前をリスト形式で定義しています。データセット自体には、これらの名前が含まれていない場合があるため、プログラムで扱いやすいように事前に定義しておきます。例えば、`"Alcohol"` はアルコール度数、`"Malic acid"` はリンゴ酸の量を表す列であることを示しています。
+
+### 3. **データセットの読み込み**
+
+```python
+# Load the dataset
+wine_data = pd.read_csv(url, names=column_names)
+```
+
+*   `wine_data = pd.read_csv(url, names=column_names)`: ここで、`pandas` ライブラリの `read_csv` 関数を使って、指定されたURLからデータを読み込んでいます。`names=column_names` は、読み込んだデータに先ほど定義したカラム名を適用するように指示しています。読み込まれたデータは、`wine_data` という名前の「DataFrame（データフレーム）」という形式で格納されます。DataFrameは、行と列で構成された表のような構造をしており、データの操作や分析に非常に便利です。
+
+### 4. **クラスラベルのマッピング（オプション）**
+
+```python
+# Map class labels (optional)
+class_mapping = {1: "class_0", 2: "class_1", 3: "class_2"}
+wine_data["Class"] = wine_data["Class"].map(class_mapping)
+```
+
+*   `class_mapping = {1: "class_0", 2: "class_1", 3: "class_2"}`:  このデータセットでは、ワインの種類が `1`, `2`, `3` という数値で表されています。この部分では、これらの数値をより分かりやすい `"class_0"`, `"class_1"`, `"class_2"` という文字列に置き換えるための対応表（辞書）を作成しています。これは、グラフのラベルなどを分かりやすくするための準備です。
+
+*   `wine_data["Class"] = wine_data["Class"].map(class_mapping)`:  `wine_data` DataFrame の `"Class"` 列に対して、先ほど作成した対応表 (`class_mapping`) を使って、値を置き換える処理を行っています。例えば、`"Class"` 列の値が `1` であれば `"class_0"` に、`2` であれば `"class_1"` に置き換えられます。
+
+### 5. **データセットの先頭の表示**
+
+```python
+# Display the head of the dataset
+print("Head of the dataset:")
+print(wine_data.head())
+```
+
+*   `print("Head of the dataset:")`: これは、コンソールに「Head of the dataset:」という文字を表示する命令です。
+
+*   `print(wine_data.head())`:  `wine_data.head()` は、DataFrame の最初の5行を表示するメソッドです。これにより、読み込んだデータがどのような形式で、どのような値が含まれているかを手軽に確認できます。例えば、最初の数行のアルコール度数やリンゴ酸の量などを確認できます。
+
+```bash
+    Head of the dataset:
+        Class  Alcohol  Malic acid   Ash  Alcalinity of ash  Magnesium  Total phenols  Flavanoids  Nonflavanoid phenols  Proanthocyanins  Color intensity   Hue  OD280/OD315 of diluted wines  Proline
+    0  class_0    14.23        1.71  2.43               15.6        127           2.80        3.06                  0.28             2.29             5.64  1.04                          3.92     1065
+    1  class_0    13.20        1.78  2.14               11.2        100           2.65        2.76                  0.26             1.28             4.38  1.05                          3.40     1050
+    2  class_0    13.16        2.36  2.67               18.6        101           2.80        3.24                  0.30             2.81             5.68  1.03                          3.17     1185
+    3  class_0    14.37        1.95  2.50               16.8        113           3.85        3.49                  0.24             2.18             7.80  0.86                          3.45     1480
+    4  class_0    13.24        2.59  2.87               21.0        118           2.80        2.69                  0.39             1.82             4.32  1.04                          2.93      735
+```
+
+### 6. **ヒストグラムの作成**
+
+```python
+# -------------------- Histogram Creation --------------------
+print("\n--- Histogram Creation ---")
+# List of features (excluding the class label)
+features = wine_data.columns.drop('Class')
+
+# Display histograms for each feature
+wine_data[features].hist(figsize=(12, 10))
+plt.suptitle("Histograms of Each Feature", fontsize=16)
+plt.tight_layout(rect=[0, 0.03, 1, 0.95])
+plt.show()
+
+# Display histograms by wine class
+for feature in features:
+    plt.figure(figsize=(8, 6))
+    sns.histplot(data=wine_data, x=feature, hue='Class', kde=True)
+    plt.title(f'Histogram of {feature} (by Wine Class)')
+    plt.xlabel(feature)
+    plt.ylabel('Frequency')
+    plt.show()
+```
+
+*   `print("\n--- Histogram Creation ---")`: これは、コンソールにヒストグラム作成の開始を示すメッセージを表示する命令です。`\n` は改行を意味します。
+
+*   `features = wine_data.columns.drop('Class')`:  `wine_data.columns` は、DataFrame のすべてのカラム名（列の名前）を取得します。`.drop('Class')` は、その中から `"Class"` という名前のカラムを除外します。結果として、`features` には、ワインの特性を表すカラム名（アルコール度数、リンゴ酸など）のリストが格納されます。
+
+*   `wine_data[features].hist(figsize=(12, 10))`:  `wine_data[features]` は、`wine_data` DataFrame から `features` リストに含まれるカラムだけを抽出した新しい DataFrame を作成します。`.hist(figsize=(12, 10))` は、その DataFrame の各カラムに対してヒストグラムを作成する命令です。`figsize=(12, 10)` は、作成されるグラフのサイズをインチ単位で指定しています。
+
+*   `plt.suptitle("Histograms of Each Feature", fontsize=16)`:  作成された複数のヒストグラム全体に対して、共通のタイトルを設定します。`fontsize=16` は、タイトルの文字サイズを指定します。
+
+*   `plt.tight_layout(rect=[0, 0.03, 1, 0.95])`:  グラフの要素（タイトルや軸ラベルなど）が重ならないように、レイアウトを自動的に調整します。
+
+*   `plt.show()`:  作成したヒストグラムを表示します。
+
+*   **ワインの種類別のヒストグラム表示**:
+
+    *   `for feature in features:`:  `features` リストに含まれる各カラム名を順番に取り出して、以下の処理を繰り返します。
+
+    *   `plt.figure(figsize=(8, 6))`:  新しいグラフの描画領域を作成します。
+
+    *   `sns.histplot(data=wine_data, x=feature, hue='Class', kde=True)`: `seaborn` ライブラリの `histplot` 関数を使ってヒストグラムを作成します。
+        *   `data=wine_data`: 使用するデータは `wine_data` DataFrame です。
+        *   `x=feature`:  横軸に表示するデータは、現在のループで処理している特徴量 (`feature`) の列です。例えば、最初のループでは `"Alcohol"` 列が横軸になります。
+        *   `hue='Class'`:  ワインの種類 (`"Class"` 列の値）ごとに色分けしてヒストグラムを表示します。これにより、ワインの種類によって特定の特徴量の分布がどのように異なるかを確認できます。
+        *   `kde=True`:  ヒストグラムの上に、カーネル密度推定（KDE）という滑らかな曲線も重ねて表示します。これにより、データの分布の傾向をより捉えやすくなります。
+
+    *   `plt.title(f'Histogram of {feature} (by Wine Class)')`:  作成するヒストグラムのタイトルを設定します。`f'...'` は f-string と呼ばれる書き方で、`{feature}` の部分が現在の特徴量の名前で置き換えられます。例えば、最初のヒストグラムのタイトルは "Histogram of Alcohol (by Wine Class)" となります。
+
+    *   `plt.xlabel(feature)`:  横軸のラベルを設定します。
+
+    *   `plt.ylabel('Frequency')`:  縦軸のラベルを設定します。
+
+    *   `plt.show()`:  作成したヒストグラムを表示します。このループにより、各特徴量について、ワインの種類別に色分けされたヒストグラムが個別に表示されます。
+
+### 7. **ヒートマップの作成**
+
+```python
+# -------------------- Heatmap Creation --------------------
+print("\n--- Heatmap Creation ---")
+# Calculate the correlation matrix
+correlation_matrix = wine_data[features].corr()
+
+# Display the heatmap
+plt.figure(figsize=(10, 8))
+sns.heatmap(correlation_matrix, annot=True, cmap='coolwarm', fmt=".2f")
+plt.title("Correlation Heatmap of Features")
+plt.show()
+
+# Display heatmaps by wine class
+for wine_class in wine_data['Class'].unique():
+    subset_data = wine_data[wine_data['Class'] == wine_class]
+    correlation_matrix_subset = subset_data[features].corr()
+
+    plt.figure(figsize=(10, 8))
+    sns.heatmap(correlation_matrix_subset, annot=True, cmap='coolwarm', fmt=".2f")
+    plt.title(f"Correlation Heatmap of Features for {wine_class}")
+    plt.show()
+```
+
+*   `print("\n--- Heatmap Creation ---")`: これは、コンソールにヒートマップ作成の開始を示すメッセージを表示する命令です。
+
+*   `correlation_matrix = wine_data[features].corr()`:  `wine_data[features]` は、ヒストグラムの作成時と同様に、ワインの特性を表すカラムだけを抽出した DataFrame です。`.corr()` は、その DataFrame のカラム間の相関係数を計算します。相関係数とは、2つの変数の関係の強さを示す指標で、-1から1の間の値を持ちます。1に近いほど正の相関が強く（一方が増えると他方も増える傾向）、-1に近いほど負の相関が強い（一方が増えると他方は減る傾向）ことを意味します。計算された相関係数の表が `correlation_matrix` に格納されます。
+
+*   `plt.figure(figsize=(10, 8))`: 新しいグラフの描画領域を作成します。
+
+*   `sns.heatmap(correlation_matrix, annot=True, cmap='coolwarm', fmt=".2f")`:  `seaborn` ライブラリの `heatmap` 関数を使ってヒートマップを作成します。
+    *   `correlation_matrix`:  ヒートマップの元となるデータは、先ほど計算した相関行列です。
+    *   `annot=True`:  ヒートマップの各セルに相関係数を表示します。
+    *   `cmap='coolwarm'`:  ヒートマップで使用する色を指定します。`'coolwarm'` は、負の相関を青色系、正の相関を赤色系で表示するカラーマップです。
+    *   `fmt=".2f"`:  表示する相関係数を小数点以下2桁までと指定します。
+
+*   `plt.title("Correlation Heatmap of Features")`:  作成するヒートマップのタイトルを設定します。
+
+*   `plt.show()`:  作成したヒートマップを表示します。
+
+*   **ワインの種類別のヒートマップ表示**:
+
+    *   `for wine_class in wine_data['Class'].unique():`: `wine_data['Class'].unique()` は、`"Class"` 列に含まれるユニークな値（ワインの種類: "class_0", "class_1", "class_2"）を取得します。このループでは、各ワインの種類について以下の処理を繰り返します。
+
+    *   `subset_data = wine_data[wine_data['Class'] == wine_class]`:  `wine_data` DataFrame から、現在のループで処理しているワインの種類 (`wine_class`) に該当する行だけを抽出した新しい DataFrame を作成します。例えば、最初のループでは `"class_0"` のワインのデータだけが抽出されます。
+
+    *   `correlation_matrix_subset = subset_data[features].corr()`:  抽出された特定の種類のワインのデータ (`subset_data`) について、特徴量間の相関係数を計算します。
+
+    *   `plt.figure(figsize=(10, 8))`: 新しいグラフの描画領域を作成します。
+
+    *   `sns.heatmap(correlation_matrix_subset, annot=True, cmap='coolwarm', fmt=".2f")`:  計算された特定の種類のワインの相関行列を使ってヒートマップを作成します。
+
+    *   `plt.title(f"Correlation Heatmap of Features for {wine_class}")`:  作成するヒートマップのタイトルを設定します。例えば、最初のヒートマップのタイトルは "Correlation Heatmap of Features for class_0" となります。
+
+    *   `plt.show()`:  作成したヒートマップを表示します。このループにより、各ワインの種類ごとに、特徴量間の相関関係を示すヒートマップが個別に表示されます。これにより、ワインの種類によって特徴量間の関係がどのように異なるかを確認できます。
+
+## **まとめ**
+
+このコードは、ワインのデータセットを読み込み、各特徴量の分布をヒストグラムで、特徴量間の相関関係をヒートマップで視覚化するものです。これにより、データの全体像や、どの特徴量同士が関連しているかなどを直感的に理解することができます。特に、ワインの種類別にグラフを表示することで、種類ごとのデータの特徴の違いを把握するのに役立ちます。

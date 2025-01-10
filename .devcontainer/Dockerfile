@@ -9,7 +9,7 @@ RUN apt-get install -y portaudio19-dev
 # mecab-python3のインストール
 RUN pip install mecab-python3
 # Pythonでよく使うライブラリをインストール
-RUN pip install numpy scikit-learn matplotlib pandas
+RUN pip install numpy scikit-learn matplotlib pandas seaborn
 # 追加
 RUN pip install requests bs4 pillow Mecab
 # PyTorchのインストール
