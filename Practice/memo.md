@@ -3286,3 +3286,188 @@ for wine_class in wine_data['Class'].unique():
 ## **まとめ**
 
 このコードは、ワインのデータセットを読み込み、各特徴量の分布をヒストグラムで、特徴量間の相関関係をヒートマップで視覚化するものです。これにより、データの全体像や、どの特徴量同士が関連しているかなどを直感的に理解することができます。特に、ワインの種類別にグラフを表示することで、種類ごとのデータの特徴の違いを把握するのに役立ちます。
+
+
+<br>
+<br>
+
+---
+
+# 38
+
+## コード解説：アヤメの品種をクラスタリングするプログラム
+
+このプログラムは、アヤメという花の種類を、その特徴に基づいて自動的にグループ分け（クラスタリング）するものです。具体的には、がく片の長さや幅、花弁の長さや幅といった情報を使って、アヤメを似たもの同士のグループに分けます。
+
+**プログラム全体の流れ**
+
+1. **準備:** 必要な道具（ライブラリ）を準備します。
+2. **データ準備:** アヤメのデータセットを読み込みます。
+3. **データ確認:** 読み込んだデータの中身を少し確認します。
+4. **クラスタリング実行:**  K-Meansという方法を使って、データをグループ分けします。
+5. **結果の可視化:** グループ分けの結果をグラフで見てみます。
+6. **結果の評価:** グループ分けがどの程度うまくいったかを簡単に確認します。
+
+それでは、コードの各部分を詳しく見ていきましょう。
+
+## **1. 準備 (import文)**
+
+```python
+import matplotlib.pyplot as plt
+from sklearn.datasets import load_iris
+from sklearn.cluster import KMeans
+import pandas as pd
+```
+
+この部分は、プログラムで使う「道具箱」から必要な道具を取り出す作業です。
+
+* `import matplotlib.pyplot as plt`:  グラフを描くための道具です。`plt` という短い名前で使えるようにしています。
+* `from sklearn.datasets import load_iris`:  アヤメのデータセットを読み込むための道具です。`sklearn` は機械学習でよく使われる便利な道具箱の名前です。
+* `from sklearn.cluster import KMeans`:  K-Meansというクラスタリングを行うための道具です。
+* `import pandas as pd`:  データを表形式で扱いやすくするための道具です。`pd` という短い名前で使えるようにしています。
+
+## **2. データ準備 (Irisデータセットのロード)**
+
+```python
+# 1. Load the Iris dataset
+iris = load_iris()
+X = iris.data
+y = iris.target
+```
+
+ここでは、実際のアヤメのデータを準備します。
+
+* `iris = load_iris()`: `load_iris()` という道具を使って、アヤメのデータセットを読み込み、`iris` という箱に格納します。この `iris` の中には、アヤメの特徴や品種の情報など、様々なデータが入っています。
+* `X = iris.data`: `iris` の中から、アヤメの特徴量データを取り出して `X` という箱に入れます。特徴量とは、がく片の長さ、幅、花弁の長さ、幅といった、アヤメを区別するための情報です。`X` には、すべてのアヤメのこれらの特徴量が数値として格納されています。例えば、`X` の最初の数行を表示すると、以下のような数値が並んでいるでしょう。
+
+```
+[[5.1 3.5 1.4 0.2]
+ [4.9 3. 1.4 0.2]
+ [4.7 3.2 1.3 0.2]
+ [4.6 3.1 1.5 0.2]
+ [5. 3.6 1.4 0.2]]
+```
+
+これは、最初のアヤメはがく片の長さが 5.1、幅が 3.5、花弁の長さが 1.4、幅が 0.2 であることを示しています。
+
+* `y = iris.target`: `iris` の中から、アヤメの品種のラベルを取り出して `y` という箱に入れます。ラベルとは、アヤメがどの種類（例えば、setosa, versicolor, virginica）に属するかを示す番号です。`y` には、各アヤメに対応する品種の番号が格納されています。例えば、`y` の最初の数個を表示すると、`[0 0 0 0 0]` のように表示されるかもしれません。これは、最初の5つのアヤメが同じ品種であることを示しています。今回はクラスタリングが目的なので、このラベルは直接使いませんが、後でクラスタリングの結果を評価するために使います。
+
+## **3. データ確認**
+
+```python
+# Check the data
+df_data = pd.DataFrame(iris.data, columns=iris.feature_names)
+print(df_data.head())
+```
+
+ここでは、読み込んだデータがどのようなものか、最初の数行を表示して簡単に確認します。
+
+* `df_data = pd.DataFrame(iris.data, columns=iris.feature_names)`:  `iris.data`（アヤメの特徴量データ）を `pandas` の `DataFrame` という形式に変換し、`df_data` という箱に入れます。`DataFrame` は、データを表形式で扱いやすくしたものです。`columns=iris.feature_names` は、表の各列に「がく片の長さ」や「がく片の幅」といった名前を付ける設定です。
+* `print(df_data.head())`: `df_data` の最初の5行を表示します。`.head()` は、DataFrame の先頭の数行を簡単に確認できる便利な機能です。出力結果は以下のようになります。
+
+```
+   sepal length (cm)  sepal width (cm)  petal length (cm)  petal width (cm)
+0                5.1               3.5                1.4               0.2
+1                4.9               3.0                1.4               0.2
+2                4.7               3.2                1.3               0.2
+3                4.6               3.1                1.5               0.2
+4                5.0               3.6                1.4               0.2
+```
+
+これにより、データがきちんと読み込まれ、各列が特徴量の名前を持っていることが確認できます。
+
+## **4. クラスタリング実行 (K-Meansクラスタリング)**
+
+```python
+# 2. Perform K-Means clustering
+n_clusters = 3
+kmeans = KMeans(n_clusters=n_clusters, random_state=0, n_init=10) # n_init: Number of time the k-means algorithm will be run with different centroid seeds.
+kmeans.fit(X)
+labels = kmeans.labels_
+centers = kmeans.cluster_centers_
+```
+
+ここでは、K-Meansという方法を使って、アヤメのデータを3つのグループに分けます。
+
+* `n_clusters = 3`:  アヤメをいくつのグループに分けたいかを設定します。ここでは3つのグループに分けることにします。
+* `kmeans = KMeans(n_clusters=n_clusters, random_state=0, n_init=10)`: K-Meansクラスタリングを行うための設定を行います。
+    * `n_clusters=n_clusters`:  上で設定したグループ数（3つ）を指定します。
+    * `random_state=0`:  乱数の種を設定します。これにより、プログラムを何度実行しても同じ結果が得られるようになります（再現性のため）。
+    * `n_init=10`: K-Meansアルゴリズムを実行する際の初期の中心点の選び方を10パターン試し、最も良い結果を採用するという設定です。
+* `kmeans.fit(X)`: 実際の特徴量データ `X` を使って、K-Meansクラスタリングを実行します。この処理で、データが3つのグループに分けられます。
+* `labels = kmeans.labels_`: クラスタリングの結果、各アヤメがどのグループに属するかを示すラベル（0, 1, または 2）が `labels` という箱に格納されます。例えば、`labels` の最初の数個を表示すると、`[0 0 0 0 0]` のようになるかもしれません。これは、最初のアヤメがグループ0に属することを示しています。
+* `centers = kmeans.cluster_centers_`: 各グループの中心点の座標が `centers` という箱に格納されます。中心点は、各グループの平均的な特徴量を示します。`centers` の内容は、例えば以下のようになります。
+
+```
+[[5.006 3.428 1.462 0.246]
+ [5.901 2.748 4.393 1.43 ]
+ [6.85  3.073 5.74  2.07 ]]
+```
+
+これは、グループ0の中心は「がく片の長さ: 5.006, 幅: 3.428, 花弁の長さ: 1.462, 幅: 0.246」あたりにあることを示しています。
+
+## **5. 結果の可視化 (クラスタリング結果の可視化)**
+
+```python
+# 3. Visualize the clustering results
+# Use the first two dimensions of the features for plotting
+plt.figure(figsize=(8, 6))
+
+# Plot the data points, colored by cluster
+for i in range(n_clusters):
+    plt.scatter(X[labels == i, 0], [X[labels == i, 1]], label=f'Cluster {i+1}')
+
+# Plot the cluster centroids
+plt.scatter(centers[:, 0], centers[:, 1], marker='x', s=200, color='red', label='Centroids')
+
+plt.xlabel(iris.feature_names[0])
+plt.ylabel(iris.feature_names[1])
+plt.title('K-means Clustering of Iris Dataset')
+plt.legend()
+plt.show()
+```
+
+ここでは、クラスタリングの結果をグラフで見てみます。アヤメの4つの特徴量のうち、最初の2つ（がく片の長さと幅）を使ってグラフを作成します。
+
+* `plt.figure(figsize=(8, 6))`:  グラフのサイズを横8インチ、縦6インチに設定します。
+* `# Plot the data points, colored by cluster`:  各アヤメのデータを点でプロットします。
+    * `for i in range(n_clusters):`:  それぞれのグループ（0, 1, 2）に対して処理を行います。
+    * `plt.scatter(X[labels == i, 0], [X[labels == i, 1]], label=f'Cluster {i+1}')`:
+        * `X[labels == i, 0]`: グループ `i` に属するアヤメの、最初の特徴量（がく片の長さ）の値を取り出します。
+        * `[X[labels == i, 1]]`: グループ `i` に属するアヤメの、2番目の特徴量（がく片の幅）の値を取り出します。
+        * `plt.scatter(...)`:  取り出した特徴量の値をx座標、y座標として点をプロットします。`label=f'Cluster {i+1}'` は、凡例に表示するグループの名前を設定します。各グループの点は異なる色で表示されます。
+* `# Plot the cluster centroids`: 各グループの中心点をプロットします。
+    * `plt.scatter(centers[:, 0], centers[:, 1], marker='x', s=200, color='red', label='Centroids')`:
+        * `centers[:, 0]`: すべてのグループの中心点の、最初の特徴量（がく片の長さ）の値を取り出します。
+        * `centers[:, 1]`: すべてのグループの中心点の、2番目の特徴量（がく片の幅）の値を取り出します。
+        * `plt.scatter(...)`: 中心点を赤い「x」印でプロットします。`marker='x'` は点の形を「x」に、`s=200` は点のサイズを、`color='red'` は色を赤に設定します。`label='Centroids'` は、凡例に表示する名前を設定します。
+* `plt.xlabel(iris.feature_names[0])`:  グラフのx軸のラベルを、最初の特徴量の名前（「sepal length (cm)」）に設定します。
+* `plt.ylabel(iris.feature_names[1])`:  グラフのy軸のラベルを、2番目の特徴量の名前（「sepal width (cm)」）に設定します。
+* `plt.title('K-means Clustering of Iris Dataset')`: グラフのタイトルを設定します。
+* `plt.legend()`:  凡例を表示します。凡例には、各色がどのグループに対応するか、中心点が何を示しているかが表示されます。
+* `plt.show()`:  作成したグラフを表示します。
+
+## **6. 結果の評価 (クラスタリング結果の簡単な評価)**
+
+```python
+# Simple evaluation of the clustering results (optional)
+# See the correspondence between actual species and clusters
+import pandas as pd
+df = pd.DataFrame({'Actual': iris.target_names[y], 'Predicted': labels})
+print('\nSimple evaluation of the clustering results')
+print(pd.crosstab(df['Actual'], df['Predicted'], rownames=['Actual'], colnames=['Predicted']))
+```
+
+ここでは、クラスタリングの結果が、実際のアヤメの品種とどの程度一致しているかを簡単に確認します。
+
+* `df = pd.DataFrame({'Actual': iris.target_names[y], 'Predicted': labels})`:
+    * `iris.target_names[y]`:  実際のアヤメの品種名を、それぞれのデータに対応するように取得します。例えば、`y` が `[0 0 1 1 2]` なら、`iris.target_names[y]` は `['setosa' 'setosa' 'versicolor' 'versicolor' 'virginica']` のようになります。
+    * `'Predicted': labels`: クラスタリングで予測されたグループのラベルをそのまま使います。
+    * これら2つの情報を組み合わせて、`pandas` の `DataFrame` を作成し、`df` という箱に入れます。`df` は、実際 の品種と予測されたグループを並べて表示する表になります。
+* `print('\nSimple evaluation of the clustering results')`:  評価結果の前に説明文を表示します。
+* `print(pd.crosstab(df['Actual'], df['Predicted'], rownames=['Actual'], colnames=['Predicted']))`:  `pd.crosstab()` は、クロス集計表を作成する機能です。
+    * `df['Actual']`:  DataFrame `df` の「Actual」列（実際の品種名）を指定します。
+    * `df['Predicted']`: DataFrame `df` の「Predicted」列（予測されたグループラベル）を指定します。
+    * `rownames=['Actual']`:  行の名前を「Actual」に設定します。
+    * `colnames=['Predicted']`: 列の名前を「Predicted」に設定します。
+    * 作成されたクロス集計表が表示されます。この表を見ることで、例えば「setosa」という品種のアヤメが、どのグループに多く分類されたかなどがわかります。完璧に一致するとは限りませんが、クラスタリングの傾向を把握することができます。

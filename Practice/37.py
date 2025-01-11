@@ -25,6 +25,7 @@ column_names = [
 
 # Load the dataset
 wine_data = pd.read_csv(url, names=column_names)
+print(wine_data.head())
 
 # Map class labels (optional)
 class_mapping = {1: "class_0", 2: "class_1", 3: "class_2"}
