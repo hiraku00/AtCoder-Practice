@@ -550,3 +550,102 @@ print(number_of_long_lines('jugemu.txt', 10) == 6)
     *   **`number_of_long_lines('jugemu.txt', 10)`**:  `number_of_long_lines` 関数に、ファイル名 `'jugemu.txt'` と長さ `10` を渡して実行します。この例では、`jugemu.txt` というファイルの中で、長さが `10` より長い行がいくつあるかを数えます。
     *   **`== 6`**:  関数の実行結果が `6` と等しいかどうかを比較しています。結果が `True` であれば、関数は正しく動作していることになります。
 
+
+<br>
+<br>
+
+---
+
+# 6-3
+
+
+```python
+class HelloFileIterator(HelloFile):
+    def __iter__(self):
+        return self
+    def __next__(self):
+        line = self.readline()
+        if line == '':
+            raise StopIteration
+        return line
+
+print(f'================================== Practice1')
+
+class StringFileIterator(HelloFileIterator):
+    def __init__(self, s, n):
+        self.s = s
+        self.n = n
+
+    def readline(self):
+        if self.n == 0:
+            return ''
+        self.n = self.n - 1
+        return self.s
+
+f = StringFileIterator('abc', 3)
+print(list(f) == ['abc','abc','abc'])
+```
+
+## **`StringFileIterator` クラスの概要:**
+
+`StringFileIterator` クラスは、`HelloFileIterator` クラスを **継承** しています。これは、`StringFileIterator` が `HelloFileIterator` の機能を受け継ぎ、さらに独自の機能を追加できるということです。
+
+### **`__init__` メソッド:**
+
+```python
+    def __init__(self, s, n):
+        self.s = s
+        self.n = n
+```
+
+- `__init__` は、クラスの **コンストラクタ** と呼ばれ、オブジェクトが作成されるときに最初に実行される特別なメソッドです。
+- `StringFileIterator('abc', 3)` のようにオブジェクトを作成する際に、`'abc'` が `s` に、`3` が `n` に渡されます。
+- `self.s = s` は、渡された文字列 `'abc'` をオブジェクトの属性 `s` に保存します。
+- `self.n = n` は、渡された数値 `3` をオブジェクトの属性 `n` に保存します。この `n` は、文字列を何回繰り返すかを制御するために使われます。
+
+### **`readline` メソッド (オーバーライド):**
+
+```python
+    def readline(self):
+        if self.n == 0:
+            return ''
+        self.n = self.n - 1
+        return self.s
+```
+
+- `readline` メソッドは、親クラスである `HelloFileIterator` (さらにその親クラスである `HelloFile`) にも定義されていますが、`StringFileIterator` では **オーバーライド (上書き)** されています。
+- `if self.n == 0:` は、オブジェクトの属性 `n` が `0` かどうかをチェックします。もし `0` であれば、空文字列 `''` を返します。これは、もう文字列を返す必要がないことを意味します。
+- `self.n = self.n - 1` は、`n` の値を `1` 減らします。
+- `return self.s` は、オブジェクトの属性 `s` に保存されている文字列（この場合は `'abc'`）を返します。
+
+### **`f = StringFileIterator('abc', 3)` の実行:**
+
+この行で、`StringFileIterator` クラスの新しいオブジェクト `f` が作成されます。`__init__` メソッドが実行され、`f.s` は `'abc'`、`f.n` は `3` に設定されます。
+
+### **`print(list(f) == ['abc','abc','abc'])` の評価:**
+
+#### 1. **`list(f)` の処理:**
+   - `list()` 関数は、引数として与えられたイテレータ（この場合は `f`）からすべての要素を取り出し、新しいリストを作成します。
+   - `f` は `StringFileIterator` のインスタンスであり、`HelloFileIterator` から `__iter__` と `__next__` メソッドを継承しています。
+   - `list(f)` は、内部的に `f` の `__next__` メソッドを繰り返し呼び出し、要素を取得していきます。
+
+#### 2. **`f.__next__()` メソッドの呼び出しと `readline` メソッドの動作 (繰り返し):**
+   - **1回目:** `f.__next__()` が呼ばれると、`readline()` が実行されます。`f.n` は `3` なので、`'abc'` が返され、`f.n` は `2` になります。
+   - **2回目:** `f.__next__()` が呼ばれると、`readline()` が実行されます。`f.n` は `2` なので、`'abc'` が返され、`f.n` は `1` になります。
+   - **3回目:** `f.__next__()` が呼ばれると、`readline()` が実行されます。`f.n` は `1` なので、`'abc'` が返され、`f.n` は `0` になります。
+   - **4回目:** `f.__next__()` が呼ばれると、`readline()` が実行されます。`f.n` は `0` なので、空文字列 `''` が返されます。
+   - `__next__()` メソッド内で `line == ''` の条件が満たされ、`raise StopIteration` が実行されます。`list()` はこの例外を受け取り、要素の取り出しを終了します。
+
+#### 3. **`list(f)` の結果:**
+   - `list(f)` は、`__next__()` から返された `'abc'`、`'abc'`、`'abc'` を要素とするリスト `['abc', 'abc', 'abc']` を作成します。
+
+#### 4. **`== ['abc','abc','abc']` の比較:**
+   - `list(f)` の結果である `['abc', 'abc', 'abc']` と、`['abc', 'abc', 'abc']` というリストリテラルを比較します。
+   - 2つのリストは内容が完全に一致するため、この比較は `True` を返します。
+
+#### 5. **`print()` 関数の出力:**
+   - `print(True)` が実行され、コンソールに `True` と表示されます。
+
+## **まとめ:**
+
+`StringFileIterator` は、指定された文字列を指定された回数だけ繰り返すイテレータを作成するクラスです。`list(f)` は、このイテレータからすべての文字列を取り出してリストに変換し、そのリストが期待されるリストと一致するかどうかを評価しています。
